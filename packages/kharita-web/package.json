@@ -1,0 +1,27 @@
+{
+  "name": "kharita",
+  "version": "0.1.0",
+  "description": "Open maps made simple: OpenStreetMap + MapLibre with Arabic-first styles, search and self-hostable tiles.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/kharita.js",
+  "module": "./dist/kharita.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/kharita.js" },
+    "./style.css": "./dist/kharita.css"
+  },
+  "files": ["dist"],
+  "sideEffects": ["*.css"],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.json --emitDeclarationOnly",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": { "maplibre-gl": "^6.16.0" },
+  "devDependencies": {
+    "maplibre-gl": "6.16.0",
+    "typescript": "~5.9.0",
+    "vite": "^7.0.0"
+  },
+  "keywords": ["maps", "openstreetmap", "maplibre", "arabic", "rtl", "geocoding"]
+}

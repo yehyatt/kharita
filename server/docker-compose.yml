@@ -1,0 +1,35 @@
+# Kharita map server: vector tiles, styles, fonts and search on one Hetzner box.
+# Copy .env.example to .env, then follow README.md.
+services:
+  caddy:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data/styles:/srv/styles:ro
+      - ./data/assets:/srv/assets:ro
+      - caddy_data:/data
+    depends_on: [tiles]
+
+  tiles:
+    image: protomaps/go-pmtiles:v1.30.3
+    restart: unless-stopped
+    command: ["serve", "/tiles", "--public-url=https://${DOMAIN}/tiles", "--port=8080"]
+    volumes:
+      - ./data/tiles:/tiles:ro
+
+  search:
+    image: eclipse-temurin:21-jre
+    restart: unless-stopped
+    profiles: ["search"]
+    working_dir: /photon
+    command: ["java", "-Xmx${PHOTON_HEAP:-2g}", "-jar", "photon.jar", "serve",
+              "-data-dir", "/photon", "-listen-ip", "0.0.0.0", "-listen-port", "2322"]
+    volumes:
+      - ./data/photon:/photon
+
+volumes:
+  caddy_data:

@@ -1,0 +1,76 @@
+/// Label language of the map and of search results.
+enum KharitaLanguage { ar, en }
+
+/// Visual theme. [light] and [dark] work on every provider; the rest only on a
+/// self-hosted Kharita server.
+enum KharitaTheme { light, dark, white, grayscale, black }
+
+/// Where styles, tiles and search come from. Swap providers without touching
+/// map code: start on [KharitaProvider.openFreeMap], move to
+/// [KharitaProvider.selfHosted] for production.
+class KharitaProvider {
+  const KharitaProvider({
+    required this.id,
+    required this.styleUrlBuilder,
+    required this.localizeOnClient,
+    this.searchUrl,
+    this.searchLanguages = const [],
+    this.fontStack = const ['Noto Sans Regular'],
+    this.rtlPluginUrl = publicRtlPluginUrl,
+  });
+
+  /// Public copy of the plugin that shapes Arabic text on Flutter web.
+  static const publicRtlPluginUrl = 'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js';
+
+  /// Your own Kharita server (see server/README.md), e.g. `https://maps.example.com`.
+  factory KharitaProvider.selfHosted(String baseUrl) {
+    final base = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    return KharitaProvider(
+      id: 'self-hosted',
+      styleUrlBuilder: (theme, language) => '$base/styles/${theme.name}-${language.name}.json',
+      localizeOnClient: false,
+      searchUrl: '$base/search',
+      searchLanguages: const ['ar', 'en'],
+      rtlPluginUrl: '$base/assets/rtl/mapbox-gl-rtl-text.js',
+    );
+  }
+
+  /// OpenFreeMap public tiles (free, no key) and the public Photon demo for
+  /// search. Good for development and small apps; both are community services
+  /// under fair-use terms, so use [KharitaProvider.selfHosted] before real traffic.
+  factory KharitaProvider.openFreeMap({String searchUrl = 'https://photon.komoot.io'}) {
+    return KharitaProvider(
+      id: 'openfreemap',
+      styleUrlBuilder: (theme, _) => switch (theme) {
+        KharitaTheme.light => 'https://tiles.openfreemap.org/styles/liberty',
+        KharitaTheme.dark || KharitaTheme.black => 'https://tiles.openfreemap.org/styles/dark',
+        _ => 'https://tiles.openfreemap.org/styles/positron',
+      },
+      localizeOnClient: true,
+      searchUrl: searchUrl,
+      searchLanguages: const ['en', 'de', 'fr'],
+    );
+  }
+
+  final String id;
+
+  /// Builds the style URL for a theme and language.
+  final String Function(KharitaTheme, KharitaLanguage) styleUrlBuilder;
+
+  /// True when the style is single-language and labels are rewritten on the client.
+  final bool localizeOnClient;
+
+  /// Photon-compatible search endpoint without trailing slash, or null.
+  final String? searchUrl;
+
+  /// Languages the search index holds; others fall back to local names.
+  final List<String> searchLanguages;
+
+  /// Font stack served by the provider's glyph server, for SDK-drawn labels.
+  final List<String> fontStack;
+
+  /// Script that shapes Arabic labels in MapLibre GL JS (Flutter web only).
+  final String rtlPluginUrl;
+
+  String styleUrl(KharitaTheme theme, KharitaLanguage language) => styleUrlBuilder(theme, language);
+}

@@ -1,0 +1,37 @@
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Access-Control-Allow-Origin *
+		Access-Control-Allow-Methods "GET, OPTIONS"
+	}
+
+	# Vector tiles + TileJSON from go-pmtiles: /tiles/mena.json, /tiles/mena/{z}/{x}/{y}.mvt
+	handle_path /tiles/* {
+		reverse_proxy tiles:8080
+		header Cache-Control "public, max-age=86400"
+	}
+
+	# Generated MapLibre styles: /styles/light-ar.json ...
+	handle_path /styles/* {
+		root * /srv/styles
+		file_server
+		header Cache-Control "public, max-age=3600"
+	}
+
+	# Fonts (glyph PBFs) and sprites
+	handle_path /assets/* {
+		root * /srv/assets
+		file_server
+		header Cache-Control "public, max-age=604800"
+	}
+
+	# Photon geocoder: /search/api?q=..., /search/reverse?lat=..&lon=..
+	handle_path /search/* {
+		reverse_proxy search:2322
+	}
+
+	handle {
+		respond "Kharita map server" 200
+	}
+}

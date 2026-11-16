@@ -1,0 +1,7 @@
+{
+  "name": "kharita-styles",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "dependencies": { "@protomaps/basemaps": "5.7.2" }
+}
