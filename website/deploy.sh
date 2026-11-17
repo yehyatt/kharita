@@ -10,5 +10,6 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 (cd "$root/apps/explorer" && flutter build web --release --base-href /explorer/ >/dev/null)
 (cd "$root/website" && npm install --silent && node build.mjs)
 
-rsync -az --delete "$root/website/dist/" "$host:/opt/mapeleven/server/data/site/"
+# Older /sdk/web/<version>/ folders stay on the server: pages pin them.
+rsync -az --delete --filter="P /sdk/web/**" "$root/website/dist/" "$host:/opt/mapeleven/server/data/site/"
 echo "Deployed to $host"

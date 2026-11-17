@@ -12,7 +12,7 @@ Everything here runs on Android, iOS and Flutter web from the same code.
 ```dart
 MapelevenMap(
   provider: MapelevenProvider.hosted(),
-  language: MapelevenLanguage.ar,      // or .en; switch at runtime
+  language: MapelevenLanguage.ar,      // optional: defaults to the app's language
   theme: MapelevenTheme.light,         // light, dark, white, grayscale, black
   initialCenter: const LatLng(31.9539, 35.9106),
   initialZoom: 13,

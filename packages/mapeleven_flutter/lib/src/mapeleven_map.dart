@@ -9,14 +9,14 @@ import 'localize.dart';
 import 'provider.dart';
 import 'rtl_stub.dart' if (dart.library.js_interop) 'rtl_web.dart';
 
-/// A map with sensible defaults: Arabic labels, OSM attribution, theme and
-/// language switching. Change [language] or [theme] and rebuild; markers and
+/// A map with sensible defaults: labels in the app's language (Arabic or
+/// English), OSM attribution, theme and language switching. Change [language] or [theme] and rebuild; markers and
 /// layers added through the controller are kept.
 class MapelevenMap extends StatefulWidget {
   const MapelevenMap({
     super.key,
     this.provider,
-    this.language = MapelevenLanguage.ar,
+    this.language,
     this.theme = MapelevenTheme.light,
     this.initialCenter = const LatLng(31.9539, 35.9106),
     this.initialZoom = 11,
@@ -31,7 +31,9 @@ class MapelevenMap extends StatefulWidget {
 
   /// Defaults to [MapelevenProvider.openFreeMap] (development use).
   final MapelevenProvider? provider;
-  final MapelevenLanguage language;
+  /// Label language. Leave it null to follow the app's locale (from
+  /// `MaterialApp`, else the device): Arabic for Arabic, English otherwise.
+  final MapelevenLanguage? language;
   final MapelevenTheme theme;
   final LatLng initialCenter;
   final double initialZoom;
@@ -69,21 +71,35 @@ class _MapelevenMapState extends State<MapelevenMap> {
   Object? _error;
   bool _announced = false;
   int _request = 0;
+  MapelevenLanguage? _language;
+
+  MapelevenLanguage get language => _language!;
+
+  MapelevenLanguage _pickLanguage() =>
+      widget.language ??
+      MapelevenLanguage.fromLocale(Localizations.maybeLocaleOf(context) ?? WidgetsBinding.instance.platformDispatcher.locale);
 
   @override
-  void initState() {
-    super.initState();
-    _resolveStyle();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _update(theme: widget.theme);
   }
 
   @override
   void didUpdateWidget(MapelevenMap old) {
     super.didUpdateWidget(old);
-    _controller?.language = widget.language;
-    if (old.language != widget.language || old.theme != widget.theme) {
-      _controller?.onStyleChanging();
-      _resolveStyle();
-    }
+    _update(theme: old.theme);
+  }
+
+  /// Reloads the style when the language (widget or app locale) or theme changed.
+  void _update({required MapelevenTheme theme}) {
+    final next = _pickLanguage();
+    final first = _language == null;
+    if (!first && next == _language && theme == widget.theme) return;
+    _language = next;
+    _controller?.language = next;
+    if (!first) _controller?.onStyleChanging();
+    _resolveStyle();
   }
 
   @override
@@ -94,12 +110,12 @@ class _MapelevenMapState extends State<MapelevenMap> {
 
   Future<void> _resolveStyle() async {
     final request = ++_request;
-    final url = _provider.styleUrl(widget.theme, widget.language);
+    final url = _provider.styleUrl(widget.theme, language);
     try {
       String style = url;
       if (_provider.localizeOnClient) {
         final base = _styleCache[url] ??= await _fetchJson(url);
-        style = jsonEncode(localizeStyle(base, widget.language));
+        style = jsonEncode(localizeStyle(base, language));
       }
       if (mounted && request == _request) {
         setState(() {
@@ -133,13 +149,13 @@ class _MapelevenMapState extends State<MapelevenMap> {
         ),
       );
     }
-    final rtl = widget.language == MapelevenLanguage.ar;
+    final rtl = language == MapelevenLanguage.ar;
     return MapLibreMap(
       styleString: style,
       initialCameraPosition: CameraPosition(target: widget.initialCenter, zoom: widget.initialZoom),
       onMapCreated: (raw) {
         ensureRtlPlugin(_provider.rtlPluginUrl);
-        _controller = MapelevenController.internal(raw, _provider, language: widget.language);
+        _controller = MapelevenController.internal(raw, _provider, language: language);
       },
       onStyleLoadedCallback: () async {
         final controller = _controller;

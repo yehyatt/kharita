@@ -4,11 +4,12 @@
 
 Open maps made simple for **Flutter** and the **web**. Mapeleven wraps
 [MapLibre](https://maplibre.org) and [OpenStreetMap](https://www.openstreetmap.org) data
-in one small API with Arabic-first styles, place search, and a self-hostable server
+in one small API with styles in your app's language, place search, and a self-hostable server
 that runs on a single Hetzner box.
 
 - **No API keys, no per-request fees.** Start on free public tiles, then move to your own server with one line.
-- **Arabic first.** Labels in Arabic or English, switchable at runtime; RTL shaping handled for you.
+- **A free Mapbox and Google Maps alternative.** See the [comparison](https://mapeleven.dev/docs/compare.html) and the guides for moving from [Google Maps](https://mapeleven.dev/docs/google-maps.html) or [Mapbox](https://mapeleven.dev/docs/mapbox.html).
+- **Your language, Arabic done right.** Labels follow the app's language (Arabic or English) and switch at runtime; RTL shaping handled for you.
 - **Same model everywhere.** Providers, themes, markers, GeoJSON layers and search look the same in Dart and TypeScript.
 - **Licence-safe by default.** OpenStreetMap attribution stays on; public services are used only within their fair-use terms.
 
@@ -51,7 +52,7 @@ With Vite, also add `optimizeDeps: { exclude: ["maplibre-gl"] }` to `vite.config
 ```yaml
 dependencies:
   mapeleven:
-    git: { url: https://github.com/yehyatt/mapeleven, path: packages/mapeleven_flutter, ref: v0.2.0 }
+    git: { url: https://github.com/yehyatt/mapeleven, path: packages/mapeleven_flutter, ref: v0.2.1 }
 ```
 
 ```dart

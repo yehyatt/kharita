@@ -14,6 +14,7 @@ import { MapelevenSearch } from "./search";
 export interface MapelevenMapOptions {
   /** Defaults to OpenFreeMap (development use). */
   provider?: MapelevenProvider;
+  /** Label language. Defaults to the page language (`<html lang>`, else the browser): Arabic for Arabic, English otherwise. */
   language?: MapelevenLanguage;
   theme?: MapelevenTheme;
   /** [lng, lat]. Defaults to Amman. */
@@ -56,7 +57,7 @@ export interface GeoJSONLayerHandle {
 const PREFIX = "mapeleven-";
 const DEFAULT_COLOR = "#0066FF";
 
-/** A map with sensible defaults: Arabic labels, attribution, RTL shaping, theme and language switching. */
+/** A map with sensible defaults: labels in the page language (Arabic or English), attribution, RTL shaping, theme and language switching. */
 export class MapelevenMap {
   /** The underlying MapLibre map, for anything Mapeleven does not wrap. */
   readonly map: maplibregl.Map;
@@ -73,7 +74,7 @@ export class MapelevenMap {
 
   constructor(container: HTMLElement | string, options: MapelevenMapOptions = {}) {
     this.provider = options.provider ?? openFreeMap();
-    this._language = options.language ?? "ar";
+    this._language = options.language ?? pageLanguage();
     this._theme = options.theme ?? "light";
     if (options.workerUrl) maplibregl.setWorkerUrl(options.workerUrl);
     ensureRtlPlugin(this.provider.rtlPluginUrl);
@@ -266,4 +267,10 @@ export class MapelevenMap {
     });
     await loaded;
   }
+}
+
+/** Arabic when the page (`<html lang>`) or, failing that, the browser is Arabic; English otherwise. */
+export function pageLanguage(): MapelevenLanguage {
+  const lang = (typeof document !== "undefined" && document.documentElement.lang) || (typeof navigator !== "undefined" ? navigator.language : "");
+  return lang.toLowerCase().startsWith("ar") ? "ar" : "en";
 }

@@ -16,7 +16,7 @@ import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url"; // Vite
 
 const map = new MapelevenMap("map", {
   provider: hosted(),
-  language: "ar",            // "ar" | "en"
+  language: "ar",            // optional: defaults to the page language
   theme: "light",            // light, dark, white, grayscale, black
   center: [35.9106, 31.9539],
   zoom: 13,
@@ -70,13 +70,13 @@ Use `new MapelevenSearch(hosted())` to search without a map.
 The SDK is served from mapeleven.dev, versioned, so a plain HTML page works:
 
 ```html
-<link rel="stylesheet" href="https://mapeleven.dev/sdk/web/0.2.0/mapeleven.css" />
+<link rel="stylesheet" href="https://mapeleven.dev/sdk/web/0.2.1/mapeleven.css" />
 <script type="importmap">
   { "imports": { "maplibre-gl": "https://cdn.jsdelivr.net/npm/maplibre-gl@6.16.0/dist/maplibre-gl.mjs" } }
 </script>
 <div id="map" style="height: 100vh"></div>
 <script type="module">
-  import { MapelevenMap, hosted } from "https://mapeleven.dev/sdk/web/0.2.0/mapeleven.js";
+  import { MapelevenMap, hosted } from "https://mapeleven.dev/sdk/web/0.2.1/mapeleven.js";
   new MapelevenMap("map", {
     provider: hosted(),
     workerUrl: "https://cdn.jsdelivr.net/npm/maplibre-gl@6.16.0/dist/maplibre-gl-worker.mjs",

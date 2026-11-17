@@ -49,8 +49,8 @@ const pages = readdirSync(join(root, "docs"))
   .map((file) => {
     const raw = readFileSync(join(root, "docs", file), "utf8");
     const fm = raw.match(/^---\n([\s\S]*?)\n---\n/);
-    const meta = Object.fromEntries((fm?.[1] ?? "").split("\n").map((l) => l.split(/:\s*/, 2)));
-    return { slug: file.replace(/\.md$/, ""), title: meta.title ?? file, order: Number(meta.order ?? 99), body: raw.slice(fm?.[0].length ?? 0) };
+    const meta = Object.fromEntries((fm?.[1] ?? "").split("\n").map((l) => [l.slice(0, l.indexOf(":")), l.slice(l.indexOf(":") + 1).trim()]));
+    return { slug: file.replace(/\.md$/, ""), title: meta.title ?? file, description: meta.description, order: Number(meta.order ?? 99), body: raw.slice(fm?.[0].length ?? 0) };
   })
   .sort((a, b) => a.order - b.order);
 
@@ -79,6 +79,8 @@ for (const page of pages) {
     .join("\n");
   const out = template
     .replaceAll("{{title}}", escape(page.title))
+    .replace("{{description}}", escape(page.description ?? `Mapeleven documentation: ${page.title}.`))
+    .replace("{{canonical}}", `https://mapeleven.dev/docs/${page.slug}.html`)
     .replace("{{nav}}", nav)
     .replace("{{toc}}", toc.join("\n"))
     .replace("{{content}}", html)
@@ -86,4 +88,11 @@ for (const page of pages) {
   writeFileSync(join(dist, "docs", `${page.slug}.html`), out);
 }
 writeFileSync(join(dist, "docs/index.html"), '<!doctype html><meta http-equiv="refresh" content="0; url=getting-started.html">');
+// For search engines: sitemap and robots.
+const urls = ["https://mapeleven.dev/", "https://mapeleven.dev/explorer/", ...pages.map((p) => `https://mapeleven.dev/docs/${p.slug}.html`)];
+writeFileSync(
+  join(dist, "sitemap.xml"),
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`,
+);
+writeFileSync(join(dist, "robots.txt"), "User-agent: *\nAllow: /\nSitemap: https://mapeleven.dev/sitemap.xml\n");
 console.log(`Built ${pages.length} docs pages into ${dist}`);

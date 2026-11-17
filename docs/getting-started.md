@@ -1,5 +1,6 @@
 ---
 title: Getting started
+description: Add open-source maps, place search and markers to a Flutter or web app in minutes with Mapeleven, on OpenStreetMap and MapLibre, with no API keys.
 order: 1
 ---
 
@@ -25,10 +26,10 @@ dependencies:
     git:
       url: https://github.com/yehyatt/mapeleven
       path: packages/mapeleven_flutter
-      ref: v0.2.0
+      ref: v0.2.1
 ```
 
-The pub.dev release (`mapeleven: ^0.2.0`) follows; the API is the same.
+The pub.dev release (`mapeleven: ^0.2.1`) follows; the API is the same.
 
 ### 2. Platform setup
 

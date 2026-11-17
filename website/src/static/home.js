@@ -3,7 +3,7 @@ import { MapelevenMap, hosted } from "/static/js/mapeleven.js";
 
 const map = new MapelevenMap("map", {
   provider: hosted(location.hostname === "localhost" || location.hostname === "127.0.0.1" ? "https://mapeleven.dev" : location.origin),
-  language: "ar",
+  language: "en",
   center: [35.9106, 31.9566],
   zoom: 13,
   controls: { navigation: false, locate: false },

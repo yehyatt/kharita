@@ -1,6 +1,6 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 
-export { MapelevenMap } from "./map";
+export { MapelevenMap, pageLanguage } from "./map";
 export type { GeoJSONLayerHandle, GeoJSONLayerOptions, MapelevenMapOptions, MarkerOptions } from "./map";
 export { MapelevenSearch } from "./search";
 export type { MapelevenPlace, SearchOptions } from "./search";

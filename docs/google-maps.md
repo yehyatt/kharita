@@ -1,5 +1,6 @@
 ---
 title: Coming from Google Maps
+description: Replace google_maps_flutter and Google geocoding with Mapeleven, an open-source alternative on OpenStreetMap with no API keys, including widget mapping, a drop-in geocoding provider and a safe rollout.
 order: 4
 ---
 

@@ -1,3 +1,9 @@
+## 0.2.1
+
+- The map language now follows the app: leave `language` null and `MapelevenMap` uses the `MaterialApp` locale (else the device), Arabic for Arabic and English otherwise. Pass `language` to fix it, as before. Previously the default was always Arabic.
+- `MapelevenLanguage.fromLocale(locale)`.
+- Web SDK: `language` defaults to the page language (`<html lang>`, else the browser); `pageLanguage()` is exported.
+
 ## 0.2.0
 
 - `MapelevenProvider.hosted()`: the public server at mapeleven.dev (Jordan and the GCC, Arabic and English search).

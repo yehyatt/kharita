@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mapeleven · Open maps for Flutter and the web</title>
-  <meta name="description" content="Open-source maps SDK for Flutter and the web on OpenStreetMap: Arabic-first labels, place search, delivery-ready markers and zones, no API keys." />
+  <title>Mapeleven · Open-source maps SDK for Flutter and the web, a Mapbox and Google Maps alternative</title>
+  <meta name="description" content="Free, open-source alternative to Mapbox and Google Maps for Flutter and the web. Vector maps on OpenStreetMap and MapLibre, place search, markers, zones and live tracking. No API keys, no per-request fees, self-hostable." />
   <meta property="og:title" content="Mapeleven" />
-  <meta property="og:description" content="Open maps for Flutter and the web. Arabic first. No API keys." />
+  <meta property="og:description" content="Open-source maps for Flutter and the web. A Mapbox and Google Maps alternative with no API keys." />
+  <link rel="canonical" href="https://mapeleven.dev/" />
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,19 +22,19 @@
     <nav>
       <a href="/docs/getting-started.html">Docs</a>
       <a href="/explorer/">Demo</a>
-      <a href="/docs/google-maps.html">From Google Maps</a>
+      <a href="/docs/compare.html">Compare</a>
       <a href="https://github.com/yehyatt/mapeleven" rel="noopener">GitHub</a>
     </nav>
   </header>
 
   <section class="hero">
     <div class="hero-text">
-      <p class="eyebrow">Open source · Flutter and web</p>
-      <h1>Open maps for the Arab world, <span>ready for your app.</span></h1>
+      <p class="eyebrow">Open source · Flutter and web · MapLibre and OpenStreetMap</p>
+      <h1>Open-source maps for Flutter and the web. <span>No API keys.</span></h1>
       <p class="lead">
-        Vector maps on OpenStreetMap with Arabic and English labels, place search, custom markers, zones and live
-        tracking, from one SDK. No API keys, no per-request bills. Use the hosted server for Jordan and the GCC,
-        or run your own.
+        A free alternative to Mapbox and Google Maps: vector maps on OpenStreetMap, place search, custom markers,
+        zones and live tracking, from one SDK. Labels follow your app's language, with Arabic and right-to-left done
+        properly. Use the hosted server for Jordan and the Gulf, or run your own for any country.
       </p>
       <div class="cta">
         <a class="btn primary" href="/docs/getting-started.html">Get started</a>
@@ -45,11 +46,11 @@
       <div id="map"></div>
       <div class="map-ui">
         <div class="map-search">
-          <input id="q" type="search" placeholder="ابحث عن صيدلية أو مدينة" autocomplete="off" dir="auto" />
+          <input id="q" type="search" placeholder="Search a pharmacy or a city" autocomplete="off" dir="auto" />
           <ul id="results" hidden></ul>
         </div>
         <div class="map-toggles">
-          <button id="lang" title="Language">EN</button>
+          <button id="lang" title="عربي / English">ع</button>
           <button id="theme" title="Theme">◐</button>
         </div>
       </div>
@@ -58,8 +59,8 @@
 
   <section class="features">
     <article>
-      <h3>Arabic first</h3>
-      <p>Labels in Arabic or English, switched at runtime. Arabic is shaped correctly on every platform, and layouts follow RTL.</p>
+      <h3>Your language, Arabic done right</h3>
+      <p>Labels follow your app's language and switch at runtime. Arabic is shaped correctly on every platform, layouts follow RTL, and search copes with Arabic spelling variants. Press ع on the map above.</p>
     </article>
     <article>
       <h3>Search and addresses</h3>
@@ -124,12 +125,17 @@ const places = await map.search.search("صيدلية", { near: { lat: 31.95, lng
 
   <section class="split">
     <div>
-      <h2>Coming from Google Maps?</h2>
+      <h2>Coming from Google Maps or Mapbox?</h2>
       <p>
-        The Flutter widgets map one to one, and backend geocoding becomes one new provider class. The guide covers the
-        widget mapping, a drop-in geocoding provider, Arabic name matching for delivery zones, and a shadow-mode rollout.
+        From Google Maps, the Flutter widgets map one to one and backend geocoding becomes one new provider class.
+        From Mapbox, little changes at all: Mapeleven runs on MapLibre, the open-source continuation of Mapbox GL.
+        Both guides cover the code mapping, search and a safe rollout.
       </p>
-      <a class="btn" href="/docs/google-maps.html">Read the migration guide</a>
+      <p class="cta-row">
+        <a class="btn" href="/docs/google-maps.html">From Google Maps</a>
+        <a class="btn" href="/docs/mapbox.html">From Mapbox</a>
+        <a class="btn" href="/docs/compare.html">Side-by-side comparison</a>
+      </p>
     </div>
     <div class="callout">
       <p class="eyebrow">First customer</p>

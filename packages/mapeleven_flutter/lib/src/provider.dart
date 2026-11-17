@@ -1,5 +1,13 @@
+import 'dart:ui' show Locale;
+
 /// Label language of the map and of search results.
-enum MapelevenLanguage { ar, en }
+enum MapelevenLanguage {
+  ar,
+  en;
+
+  /// Arabic for an Arabic locale, English for every other locale.
+  static MapelevenLanguage fromLocale(Locale? locale) => locale?.languageCode == 'ar' ? ar : en;
+}
 
 /// Visual theme. [light] and [dark] work on every provider; the rest only on a
 /// self-hosted Mapeleven server.

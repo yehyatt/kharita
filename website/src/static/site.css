@@ -67,6 +67,7 @@ code, pre { font-family: var(--mono); font-size: 0.9em; }
 .hero h1 span { color: var(--brand); }
 .lead { font-size: clamp(16px, 1.6vw, 19px); color: var(--muted); max-width: 560px; }
 .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 14px; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .btn {
   display: inline-block; padding: 12px 20px; border-radius: 999px; font-weight: 600; text-decoration: none;
   border: 1.5px solid var(--line); color: var(--ink); background: var(--bg);

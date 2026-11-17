@@ -1,6 +1,6 @@
 {
   "name": "mapeleven",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Open maps made simple: OpenStreetMap + MapLibre with Arabic-first styles, search and self-hostable tiles.",
   "license": "MIT",
   "type": "module",
