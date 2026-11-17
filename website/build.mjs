@@ -28,6 +28,15 @@ for (const f of ["maplibre-gl.mjs", "maplibre-gl-shared.mjs", "maplibre-gl-worke
   cpSync(join(ml, f), join(dist, "static/js", f));
 }
 
+// Versioned SDK for pages without a bundler: /sdk/web/<version>/ and /sdk/web/latest/.
+const version = JSON.parse(readFileSync(join(root, "packages/mapeleven-web/package.json"), "utf8")).version;
+for (const dir of [version, "latest"]) {
+  const out = join(dist, "sdk/web", dir);
+  mkdirSync(out, { recursive: true });
+  cpSync(join(sdk, "mapeleven.js"), join(out, "mapeleven.js"));
+  cpSync(join(sdk, "mapeleven.css"), join(out, "mapeleven.css"));
+}
+
 // Explorer (Flutter web build with --base-href /explorer/).
 const explorer = join(root, "apps/explorer/build/web");
 if (existsSync(join(explorer, "index.html"))) cpSync(explorer, join(dist, "explorer"), { recursive: true });

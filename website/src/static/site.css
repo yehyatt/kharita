@@ -131,6 +131,10 @@ section.code pre, .doc pre {
   padding: 28px clamp(16px, 4vw, 40px); border-top: 1px solid var(--line); font-size: 14px; color: var(--muted);
 }
 
+.starters .card { display: block; text-decoration: none; color: inherit; padding: 22px; border: 1px solid var(--line); border-radius: 18px; transition: border-color 0.15s, transform 0.15s; }
+.starters .card:hover { border-color: var(--brand); transform: translateY(-2px); }
+.starters .card p { margin: 6px 0 0; color: var(--muted); }
+
 /* Docs */
 .docs-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr) 220px; gap: 40px; max-width: 1320px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); }
 .sidebar, .toc { position: sticky; top: 64px; align-self: start; max-height: calc(100vh - 64px); overflow: auto; padding: 28px 0; display: flex; flex-direction: column; gap: 2px; }

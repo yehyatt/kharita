@@ -67,13 +67,21 @@ Use `new MapelevenSearch(hosted())` to search without a map.
 
 ## Without a bundler
 
+The SDK is served from mapeleven.dev, versioned, so a plain HTML page works:
+
 ```html
-<link rel="stylesheet" href="https://unpkg.com/mapeleven@0.2.0/dist/mapeleven.css" />
+<link rel="stylesheet" href="https://mapeleven.dev/sdk/web/0.2.0/mapeleven.css" />
 <script type="importmap">
-  { "imports": { "maplibre-gl": "https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs" } }
+  { "imports": { "maplibre-gl": "https://cdn.jsdelivr.net/npm/maplibre-gl@6.16.0/dist/maplibre-gl.mjs" } }
 </script>
+<div id="map" style="height: 100vh"></div>
 <script type="module">
-  import { MapelevenMap, hosted } from "https://unpkg.com/mapeleven@0.2.0/dist/mapeleven.js";
-  new MapelevenMap("map", { provider: hosted() });
+  import { MapelevenMap, hosted } from "https://mapeleven.dev/sdk/web/0.2.0/mapeleven.js";
+  new MapelevenMap("map", {
+    provider: hosted(),
+    workerUrl: "https://cdn.jsdelivr.net/npm/maplibre-gl@6.16.0/dist/maplibre-gl-worker.mjs",
+  });
 </script>
 ```
+
+The [web starter](https://github.com/yehyatt/mapeleven-web-starter) is this page plus search and markers.

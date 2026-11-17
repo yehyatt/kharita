@@ -90,6 +90,14 @@ cd examples/flutter && flutter run                            # phone, emulator 
 flutter run --dart-define=MAPELEVEN_SERVER=https://maps.example.com   # against your server
 ```
 
+## Starter repos
+
+| Repo | What |
+|---|---|
+| [mapeleven-flutter-starter](https://github.com/yehyatt/mapeleven-flutter-starter) | The smallest useful Flutter app: map, search, Arabic / English |
+| [mapeleven-delivery-template](https://github.com/yehyatt/mapeleven-delivery-template) | Flutter delivery flow: address picker, zones, live driver tracking |
+| [mapeleven-web-starter](https://github.com/yehyatt/mapeleven-web-starter) | One HTML page with search and your own points, no build step |
+
 ## Guides
 
 [Getting started](docs/getting-started.md) · [Flutter](docs/flutter.md) · [Web](docs/web.md) ·

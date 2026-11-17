@@ -82,6 +82,16 @@ With Vite, also add `optimizeDeps: { exclude: ["maplibre-gl"] }` to `vite.config
 
 Coordinates on the web follow MapLibre and GeoJSON order: `[longitude, latitude]`. In Flutter they are `LatLng(latitude, longitude)`.
 
+## Starter repos
+
+Clone one and run it, then change it into your app.
+
+| Repo | What |
+|---|---|
+| [mapeleven-flutter-starter](https://github.com/yehyatt/mapeleven-flutter-starter) | The smallest useful Flutter app: map, search, Arabic / English |
+| [mapeleven-delivery-template](https://github.com/yehyatt/mapeleven-delivery-template) | Flutter delivery flow: address picker, zones, live driver tracking |
+| [mapeleven-web-starter](https://github.com/yehyatt/mapeleven-web-starter) | One HTML page with search and your own points, no build step |
+
 ## Next steps
 
 - [Flutter guide](flutter.md): markers, icons, search, layers, places on the map.
