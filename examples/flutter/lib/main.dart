@@ -2,19 +2,19 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:kharita/kharita.dart';
+import 'package:mapeleven/mapeleven.dart';
 
-// --dart-define=KHARITA_SERVER=https://maps.example.com uses your own server; otherwise OpenFreeMap.
-const _server = String.fromEnvironment('KHARITA_SERVER');
+// --dart-define=MAPELEVEN_SERVER=https://maps.example.com uses your own server; otherwise OpenFreeMap.
+const _server = String.fromEnvironment('MAPELEVEN_SERVER');
 
-void main() => runApp(const KharitaExampleApp());
+void main() => runApp(const MapelevenExampleApp());
 
-class KharitaExampleApp extends StatelessWidget {
-  const KharitaExampleApp({super.key});
+class MapelevenExampleApp extends StatelessWidget {
+  const MapelevenExampleApp({super.key});
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'Kharita',
+        title: 'Mapeleven',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(colorSchemeSeed: const Color(0xFF0066FF), fontFamily: 'Arial'),
         home: const MapScreen(),
@@ -29,17 +29,17 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final _provider = _server.isEmpty ? KharitaProvider.openFreeMap() : KharitaProvider.selfHosted(_server);
+  final _provider = _server.isEmpty ? MapelevenProvider.openFreeMap() : MapelevenProvider.selfHosted(_server);
   final _query = TextEditingController();
-  KharitaController? _map;
-  var _language = KharitaLanguage.ar;
-  var _theme = KharitaTheme.light;
-  List<KharitaPlace> _results = const [];
+  MapelevenController? _map;
+  var _language = MapelevenLanguage.ar;
+  var _theme = MapelevenTheme.light;
+  List<MapelevenPlace> _results = const [];
   Timer? _debounce;
 
-  bool get _ar => _language == KharitaLanguage.ar;
+  bool get _ar => _language == MapelevenLanguage.ar;
 
-  void _onReady(KharitaController map) {
+  void _onReady(MapelevenController map) {
     _map = map;
     // Synthetic sample data: 60 points scattered around Amman, clustered.
     final r = Random(42);
@@ -59,7 +59,7 @@ class _MapScreenState extends State<MapScreen> {
             },
         ],
       },
-      options: KharitaGeoJsonOptions(
+      options: MapelevenGeoJsonOptions(
         cluster: true,
         color: const Color(0xFF00D4AA),
         onTap: (props, _) => _toast('${props['name']}'),
@@ -83,7 +83,7 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  Future<void> _pick(KharitaPlace place) async {
+  Future<void> _pick(MapelevenPlace place) async {
     setState(() => _results = const []);
     _query.text = place.name;
     FocusScope.of(context).unfocus();
@@ -112,7 +112,7 @@ class _MapScreenState extends State<MapScreen> {
       child: Scaffold(
         body: Stack(
           children: [
-            KharitaMap(
+            MapelevenMap(
               provider: _provider,
               language: _language,
               theme: _theme,
@@ -145,13 +145,13 @@ class _MapScreenState extends State<MapScreen> {
                         const SizedBox(width: 8),
                         _Pill(
                           label: _ar ? 'EN' : 'ع',
-                          onTap: () => setState(() => _language = _ar ? KharitaLanguage.en : KharitaLanguage.ar),
+                          onTap: () => setState(() => _language = _ar ? MapelevenLanguage.en : MapelevenLanguage.ar),
                         ),
                         const SizedBox(width: 6),
                         _Pill(
-                          icon: _theme == KharitaTheme.dark ? Icons.light_mode : Icons.dark_mode,
+                          icon: _theme == MapelevenTheme.dark ? Icons.light_mode : Icons.dark_mode,
                           onTap: () => setState(
-                            () => _theme = _theme == KharitaTheme.dark ? KharitaTheme.light : KharitaTheme.dark,
+                            () => _theme = _theme == MapelevenTheme.dark ? MapelevenTheme.light : MapelevenTheme.dark,
                           ),
                         ),
                       ],

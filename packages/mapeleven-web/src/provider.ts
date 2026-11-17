@@ -1,15 +1,15 @@
-export type KharitaLanguage = "ar" | "en";
-/** `light` and `dark` work on every provider; the rest only on a self-hosted Kharita server. */
-export type KharitaTheme = "light" | "dark" | "white" | "grayscale" | "black";
+export type MapelevenLanguage = "ar" | "en";
+/** `light` and `dark` work on every provider; the rest only on a self-hosted Mapeleven server. */
+export type MapelevenTheme = "light" | "dark" | "white" | "grayscale" | "black";
 
 /**
  * Where map styles, tiles and search come from. Swap providers without touching map code:
- * start on OpenFreeMap during development, move to your own Kharita server for production.
+ * start on OpenFreeMap during development, move to your own Mapeleven server for production.
  */
-export interface KharitaProvider {
+export interface MapelevenProvider {
   readonly id: string;
   /** Style URL for a theme and language. */
-  styleUrl(theme: KharitaTheme, language: KharitaLanguage): string;
+  styleUrl(theme: MapelevenTheme, language: MapelevenLanguage): string;
   /** True when the style is single-language and labels must be rewritten on the client. */
   readonly localizeOnClient: boolean;
   /** Photon-compatible search endpoint (no trailing slash), or undefined to disable search. */
@@ -24,8 +24,8 @@ export interface KharitaProvider {
 
 const PUBLIC_RTL_PLUGIN = "https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js";
 
-/** Your own Kharita server (see server/README.md), e.g. `https://maps.example.com`. */
-export function selfHosted(baseUrl: string): KharitaProvider {
+/** Your own Mapeleven server (see server/README.md), e.g. `https://maps.example.com`. */
+export function selfHosted(baseUrl: string): MapelevenProvider {
   const base = baseUrl.replace(/\/$/, "");
   return {
     id: "self-hosted",
@@ -43,7 +43,7 @@ export function selfHosted(baseUrl: string): KharitaProvider {
  * Good for development and small apps. Both are community services under fair-use terms:
  * use `selfHosted` before real traffic.
  */
-export function openFreeMap(options: { searchUrl?: string } = {}): KharitaProvider {
+export function openFreeMap(options: { searchUrl?: string } = {}): MapelevenProvider {
   return {
     id: "openfreemap",
     styleUrl: (theme) =>

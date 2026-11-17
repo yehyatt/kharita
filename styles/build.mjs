@@ -1,4 +1,4 @@
-// Generates MapLibre style JSONs (theme x language) for a Kharita server.
+// Generates MapLibre style JSONs (theme x language) for a Mapeleven server.
 // Usage: node build.mjs --base-url=https://maps.example.com --tiles=mena --out=dist
 import { layers, namedFlavor } from "@protomaps/basemaps";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -21,7 +21,7 @@ for (const theme of THEMES) {
   for (const lang of LANGUAGES) {
     const style = {
       version: 8,
-      name: `kharita-${theme}-${lang}`,
+      name: `mapeleven-${theme}-${lang}`,
       glyphs: `${baseUrl}/assets/fonts/{fontstack}/{range}.pbf`,
       sprite: `${baseUrl}/assets/sprites/v4/${theme}`,
       sources: {

@@ -7,13 +7,13 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import 'provider.dart';
 import 'search.dart';
 
-const _prefix = 'kharita-';
+const _prefix = 'mapeleven-';
 const _markersSource = '${_prefix}markers';
 const _defaultColor = Color(0xFF0066FF);
 
-/// Options for a GeoJSON layer drawn by [KharitaController.addGeoJson].
-class KharitaGeoJsonOptions {
-  const KharitaGeoJsonOptions({this.cluster = false, this.color = _defaultColor, this.radius = 6, this.onTap});
+/// Options for a GeoJSON layer drawn by [MapelevenController.addGeoJson].
+class MapelevenGeoJsonOptions {
+  const MapelevenGeoJsonOptions({this.cluster = false, this.color = _defaultColor, this.radius = 6, this.onTap});
 
   /// Group nearby points into numbered bubbles; tapping one zooms in.
   final bool cluster;
@@ -26,9 +26,9 @@ class KharitaGeoJsonOptions {
   final void Function(Map<String, dynamic> properties, LatLng position)? onTap;
 }
 
-/// A marker added with [KharitaController.addMarker].
-class KharitaMarker {
-  const KharitaMarker({required this.id, required this.position, this.label, this.color = _defaultColor});
+/// A marker added with [MapelevenController.addMarker].
+class MapelevenMarker {
+  const MapelevenMarker({required this.id, required this.position, this.label, this.color = _defaultColor});
 
   final String id;
   final LatLng position;
@@ -40,24 +40,24 @@ class KharitaMarker {
 
 /// Handle to the map once it is ready. Survives theme and language switches:
 /// markers and GeoJSON layers are re-added after every style change.
-class KharitaController {
-  KharitaController.internal(this.raw, this.provider) : search = KharitaSearch(provider) {
+class MapelevenController {
+  MapelevenController.internal(this.raw, this.provider) : search = MapelevenSearch(provider) {
     raw.onFeatureTapped.add(_onFeatureTapped);
   }
 
-  /// The underlying maplibre_gl controller, for anything Kharita does not wrap.
+  /// The underlying maplibre_gl controller, for anything Mapeleven does not wrap.
   final MapLibreMapController raw;
-  final KharitaProvider provider;
-  final KharitaSearch search;
+  final MapelevenProvider provider;
+  final MapelevenSearch search;
 
-  final Map<String, KharitaMarker> _markers = {};
-  final Map<String, (Map<String, dynamic>, KharitaGeoJsonOptions)> _layers = {};
-  final _markerTaps = StreamController<KharitaMarker>.broadcast();
+  final Map<String, MapelevenMarker> _markers = {};
+  final Map<String, (Map<String, dynamic>, MapelevenGeoJsonOptions)> _layers = {};
+  final _markerTaps = StreamController<MapelevenMarker>.broadcast();
   bool _styleReady = false;
   int _markerSeq = 0;
 
   /// Emits when the user taps a marker.
-  Stream<KharitaMarker> get markerTaps => _markerTaps.stream;
+  Stream<MapelevenMarker> get markerTaps => _markerTaps.stream;
 
   Future<void> flyTo(LatLng target, {double? zoom}) async {
     final z = zoom ?? max(raw.cameraPosition?.zoom ?? 14, 14);
@@ -73,7 +73,7 @@ class KharitaController {
   /// Adds a pin; returns its id (pass your own [id] to update it later).
   Future<String> addMarker(LatLng position, {String? id, String? label, Color color = _defaultColor}) async {
     final markerId = id ?? 'm${_markerSeq++}';
-    _markers[markerId] = KharitaMarker(id: markerId, position: position, label: label, color: color);
+    _markers[markerId] = MapelevenMarker(id: markerId, position: position, label: label, color: color);
     await _syncMarkers();
     return markerId;
   }
@@ -91,7 +91,7 @@ class KharitaController {
   Future<void> addGeoJson(
     String name,
     Map<String, dynamic> data, {
-    KharitaGeoJsonOptions options = const KharitaGeoJsonOptions(),
+    MapelevenGeoJsonOptions options = const MapelevenGeoJsonOptions(),
   }) async {
     await removeGeoJson(name);
     _layers[name] = (data, options);
@@ -114,7 +114,7 @@ class KharitaController {
     await raw.removeSource(id).catchError((_) {});
   }
 
-  /// Called by [KharitaMap] after each style load.
+  /// Called by [MapelevenMap] after each style load.
   Future<void> onStyleLoaded() async {
     _styleReady = true;
     for (final MapEntry(key: name, value: (data, options)) in _layers.entries) {
@@ -123,7 +123,7 @@ class KharitaController {
     await _installMarkers();
   }
 
-  /// Called by [KharitaMap] before the style changes.
+  /// Called by [MapelevenMap] before the style changes.
   void onStyleChanging() => _styleReady = false;
 
   void dispose() {
@@ -132,7 +132,7 @@ class KharitaController {
     search.close();
   }
 
-  Future<void> _installLayer(String name, Map<String, dynamic> data, KharitaGeoJsonOptions o) async {
+  Future<void> _installLayer(String name, Map<String, dynamic> data, MapelevenGeoJsonOptions o) async {
     final id = '$_prefix$name';
     final color = _hex(o.color);
     await raw.addSource(
@@ -229,7 +229,7 @@ class KharitaController {
         {
           'type': 'Feature',
           'id': m.id,
-          'properties': {'kharitaId': m.id, 'label': m.label ?? '', 'color': _hex(m.color)},
+          'properties': {'mapelevenId': m.id, 'label': m.label ?? '', 'color': _hex(m.color)},
           'geometry': {
             'type': 'Point',
             'coordinates': [m.position.longitude, m.position.latitude],

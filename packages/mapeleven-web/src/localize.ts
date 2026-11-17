@@ -1,8 +1,8 @@
 import type { StyleSpecification } from "maplibre-gl";
-import type { KharitaLanguage } from "./provider";
+import type { MapelevenLanguage } from "./provider";
 
 /** Expression that picks the label in `language`, falling back to the local name. */
-export function nameExpression(language: KharitaLanguage): unknown[] {
+export function nameExpression(language: MapelevenLanguage): unknown[] {
   return language === "en"
     ? ["coalesce", ["get", "name:en"], ["get", "name_en"], ["get", "name:latin"], ["get", "name"]]
     : ["coalesce", ["get", `name:${language}`], ["get", "name"]];
@@ -12,7 +12,7 @@ export function nameExpression(language: KharitaLanguage): unknown[] {
  * Rewrites the place/road/POI labels of an OpenMapTiles-schema style to one language.
  * Labels that are not names (house numbers, road refs) are left alone.
  */
-export function localizeStyle(style: StyleSpecification, language: KharitaLanguage): StyleSpecification {
+export function localizeStyle(style: StyleSpecification, language: MapelevenLanguage): StyleSpecification {
   const expr = nameExpression(language);
   return {
     ...style,

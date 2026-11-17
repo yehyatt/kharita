@@ -1,7 +1,7 @@
-name: kharita
+name: mapeleven
 description: Open maps made simple for Flutter. OpenStreetMap + MapLibre with Arabic-first styles, place search and self-hostable tiles.
 version: 0.1.0
-repository: https://github.com/yehyatt/kharita
+repository: https://github.com/yehyatt/mapeleven
 topics: [maps, openstreetmap, maplibre, arabic, geocoding]
 
 environment:

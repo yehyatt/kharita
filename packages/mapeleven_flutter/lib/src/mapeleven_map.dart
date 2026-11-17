@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:maplibre_gl/maplibre_gl.dart';
 
-import 'kharita_controller.dart';
+import 'mapeleven_controller.dart';
 import 'localize.dart';
 import 'provider.dart';
 import 'rtl_stub.dart' if (dart.library.js_interop) 'rtl_web.dart';
@@ -12,12 +12,12 @@ import 'rtl_stub.dart' if (dart.library.js_interop) 'rtl_web.dart';
 /// A map with sensible defaults: Arabic labels, OSM attribution, theme and
 /// language switching. Change [language] or [theme] and rebuild; markers and
 /// layers added through the controller are kept.
-class KharitaMap extends StatefulWidget {
-  const KharitaMap({
+class MapelevenMap extends StatefulWidget {
+  const MapelevenMap({
     super.key,
     this.provider,
-    this.language = KharitaLanguage.ar,
-    this.theme = KharitaTheme.light,
+    this.language = MapelevenLanguage.ar,
+    this.theme = MapelevenTheme.light,
     this.initialCenter = const LatLng(31.9539, 35.9106),
     this.initialZoom = 11,
     this.showUserLocation = false,
@@ -26,10 +26,10 @@ class KharitaMap extends StatefulWidget {
     this.onLongPress,
   });
 
-  /// Defaults to [KharitaProvider.openFreeMap] (development use).
-  final KharitaProvider? provider;
-  final KharitaLanguage language;
-  final KharitaTheme theme;
+  /// Defaults to [MapelevenProvider.openFreeMap] (development use).
+  final MapelevenProvider? provider;
+  final MapelevenLanguage language;
+  final MapelevenTheme theme;
   final LatLng initialCenter;
   final double initialZoom;
 
@@ -38,19 +38,19 @@ class KharitaMap extends StatefulWidget {
   final bool showUserLocation;
 
   /// Called once, when the first style has loaded.
-  final void Function(KharitaController controller)? onMapReady;
+  final void Function(MapelevenController controller)? onMapReady;
   final void Function(LatLng position)? onTap;
   final void Function(LatLng position)? onLongPress;
 
   @override
-  State<KharitaMap> createState() => _KharitaMapState();
+  State<MapelevenMap> createState() => _MapelevenMapState();
 }
 
-class _KharitaMapState extends State<KharitaMap> {
+class _MapelevenMapState extends State<MapelevenMap> {
   static final Map<String, Map<String, dynamic>> _styleCache = {};
 
-  late final KharitaProvider _provider = widget.provider ?? KharitaProvider.openFreeMap();
-  KharitaController? _controller;
+  late final MapelevenProvider _provider = widget.provider ?? MapelevenProvider.openFreeMap();
+  MapelevenController? _controller;
   String? _style;
   Object? _error;
   bool _announced = false;
@@ -63,7 +63,7 @@ class _KharitaMapState extends State<KharitaMap> {
   }
 
   @override
-  void didUpdateWidget(KharitaMap old) {
+  void didUpdateWidget(MapelevenMap old) {
     super.didUpdateWidget(old);
     if (old.language != widget.language || old.theme != widget.theme) {
       _controller?.onStyleChanging();
@@ -110,7 +110,7 @@ class _KharitaMapState extends State<KharitaMap> {
     final style = _style;
     if (style == null) {
       return ColoredBox(
-        color: widget.theme == KharitaTheme.light || widget.theme == KharitaTheme.white
+        color: widget.theme == MapelevenTheme.light || widget.theme == MapelevenTheme.white
             ? const Color(0xFFF2EFE9)
             : const Color(0xFF1E293B),
         child: Center(
@@ -118,13 +118,13 @@ class _KharitaMapState extends State<KharitaMap> {
         ),
       );
     }
-    final rtl = widget.language == KharitaLanguage.ar;
+    final rtl = widget.language == MapelevenLanguage.ar;
     return MapLibreMap(
       styleString: style,
       initialCameraPosition: CameraPosition(target: widget.initialCenter, zoom: widget.initialZoom),
       onMapCreated: (raw) {
         ensureRtlPlugin(_provider.rtlPluginUrl);
-        _controller = KharitaController.internal(raw, _provider);
+        _controller = MapelevenController.internal(raw, _provider);
       },
       onStyleLoadedCallback: () async {
         final controller = _controller;
@@ -138,7 +138,7 @@ class _KharitaMapState extends State<KharitaMap> {
       myLocationEnabled: widget.showUserLocation,
       onMapClick: (_, latLng) => widget.onTap?.call(latLng),
       onMapLongClick: (_, latLng) => widget.onLongPress?.call(latLng),
-      // OSM's licence (ODbL) requires visible attribution; Kharita keeps the button on.
+      // OSM's licence (ODbL) requires visible attribution; Mapeleven keeps the button on.
       attributionButtonPosition: rtl ? AttributionButtonPosition.bottomLeft : AttributionButtonPosition.bottomRight,
       compassViewPosition: rtl ? CompassViewPosition.bottomRight : CompassViewPosition.bottomLeft,
       trackCameraPosition: true,

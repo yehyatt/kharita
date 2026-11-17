@@ -1,8 +1,8 @@
 {
-  "name": "kharita-example-web",
+  "name": "mapeleven-example-web",
   "private": true,
   "type": "module",
   "scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" },
-  "dependencies": { "kharita": "file:../../packages/kharita-web", "maplibre-gl": "6.16.0" },
+  "dependencies": { "mapeleven": "file:../../packages/mapeleven-web", "maplibre-gl": "6.16.0" },
   "devDependencies": { "typescript": "~5.9.0", "vite": "^7.0.0" }
 }

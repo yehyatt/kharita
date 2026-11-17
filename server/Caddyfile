@@ -32,6 +32,6 @@
 	}
 
 	handle {
-		respond "Kharita map server" 200
+		respond "Mapeleven map server" 200
 	}
 }

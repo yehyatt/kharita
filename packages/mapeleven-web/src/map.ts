@@ -7,15 +7,15 @@ import type {
   StyleSpecification,
 } from "maplibre-gl";
 import { localizeStyle } from "./localize";
-import { openFreeMap, type KharitaLanguage, type KharitaProvider, type KharitaTheme } from "./provider";
+import { openFreeMap, type MapelevenLanguage, type MapelevenProvider, type MapelevenTheme } from "./provider";
 import { ensureRtlPlugin } from "./rtl";
-import { KharitaSearch } from "./search";
+import { MapelevenSearch } from "./search";
 
-export interface KharitaMapOptions {
+export interface MapelevenMapOptions {
   /** Defaults to OpenFreeMap (development use). */
-  provider?: KharitaProvider;
-  language?: KharitaLanguage;
-  theme?: KharitaTheme;
+  provider?: MapelevenProvider;
+  language?: MapelevenLanguage;
+  theme?: MapelevenTheme;
   /** [lng, lat]. Defaults to Amman. */
   center?: [number, number];
   zoom?: number;
@@ -26,7 +26,7 @@ export interface KharitaMapOptions {
    * Vite: `import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url"`.
    */
   workerUrl?: string;
-  /** Escape hatch: extra MapLibre options (container, style and attribution are managed by Kharita). */
+  /** Escape hatch: extra MapLibre options (container, style and attribution are managed by Mapeleven). */
   maplibre?: Omit<Partial<MapOptions>, "container" | "style" | "attributionControl">;
 }
 
@@ -53,25 +53,25 @@ export interface GeoJSONLayerHandle {
   remove(): void;
 }
 
-const PREFIX = "kharita-";
+const PREFIX = "mapeleven-";
 const DEFAULT_COLOR = "#0066FF";
 
 /** A map with sensible defaults: Arabic labels, attribution, RTL shaping, theme and language switching. */
-export class KharitaMap {
-  /** The underlying MapLibre map, for anything Kharita does not wrap. */
+export class MapelevenMap {
+  /** The underlying MapLibre map, for anything Mapeleven does not wrap. */
   readonly map: maplibregl.Map;
-  readonly search: KharitaSearch;
-  readonly provider: KharitaProvider;
+  readonly search: MapelevenSearch;
+  readonly provider: MapelevenProvider;
   /** Resolves when the first style has loaded. */
   readonly ready: Promise<void>;
 
-  private _language: KharitaLanguage;
-  private _theme: KharitaTheme;
+  private _language: MapelevenLanguage;
+  private _theme: MapelevenTheme;
   private geolocate?: maplibregl.GeolocateControl;
   private styleRequest = 0;
   private styleReady = false;
 
-  constructor(container: HTMLElement | string, options: KharitaMapOptions = {}) {
+  constructor(container: HTMLElement | string, options: MapelevenMapOptions = {}) {
     this.provider = options.provider ?? openFreeMap();
     this._language = options.language ?? "ar";
     this._theme = options.theme ?? "light";
@@ -84,10 +84,10 @@ export class KharitaMap {
       center: options.center ?? [35.9106, 31.9539],
       zoom: options.zoom ?? 11,
       style: { version: 8, sources: {}, layers: [] },
-      // OSM's licence (ODbL) requires visible attribution; Kharita keeps it on.
+      // OSM's licence (ODbL) requires visible attribution; Mapeleven keeps it on.
       attributionControl: { compact: true },
     });
-    this.search = new KharitaSearch(this.provider);
+    this.search = new MapelevenSearch(this.provider);
 
     const c = { navigation: true, locate: true, scale: false, fullscreen: false, ...options.controls };
     const side = this._language === "ar" ? "top-left" : "top-right";
@@ -107,22 +107,22 @@ export class KharitaMap {
     });
   }
 
-  get language(): KharitaLanguage {
+  get language(): MapelevenLanguage {
     return this._language;
   }
 
-  get theme(): KharitaTheme {
+  get theme(): MapelevenTheme {
     return this._theme;
   }
 
   /** Switch label language. Your markers and GeoJSON layers are kept. */
-  setLanguage(language: KharitaLanguage): Promise<void> {
+  setLanguage(language: MapelevenLanguage): Promise<void> {
     this._language = language;
     return this.applyStyle();
   }
 
   /** Switch visual theme. Your markers and GeoJSON layers are kept. */
-  setTheme(theme: KharitaTheme): Promise<void> {
+  setTheme(theme: MapelevenTheme): Promise<void> {
     this._theme = theme;
     return this.applyStyle();
   }
@@ -254,7 +254,7 @@ export class KharitaMap {
     const loaded = new Promise<void>((resolve) => this.map.once("style.load", () => resolve()));
     this.map.setStyle(style, {
       diff: false,
-      // Carry Kharita-owned sources and layers (markers are DOM elements and survive anyway).
+      // Carry Mapeleven-owned sources and layers (markers are DOM elements and survive anyway).
       transformStyle: (previous: StyleSpecification | undefined, next: StyleSpecification): StyleSpecification => ({
             ...next,
             sources: {

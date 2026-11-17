@@ -1,15 +1,15 @@
 /// Label language of the map and of search results.
-enum KharitaLanguage { ar, en }
+enum MapelevenLanguage { ar, en }
 
 /// Visual theme. [light] and [dark] work on every provider; the rest only on a
-/// self-hosted Kharita server.
-enum KharitaTheme { light, dark, white, grayscale, black }
+/// self-hosted Mapeleven server.
+enum MapelevenTheme { light, dark, white, grayscale, black }
 
 /// Where styles, tiles and search come from. Swap providers without touching
-/// map code: start on [KharitaProvider.openFreeMap], move to
-/// [KharitaProvider.selfHosted] for production.
-class KharitaProvider {
-  const KharitaProvider({
+/// map code: start on [MapelevenProvider.openFreeMap], move to
+/// [MapelevenProvider.selfHosted] for production.
+class MapelevenProvider {
+  const MapelevenProvider({
     required this.id,
     required this.styleUrlBuilder,
     required this.localizeOnClient,
@@ -22,10 +22,10 @@ class KharitaProvider {
   /// Public copy of the plugin that shapes Arabic text on Flutter web.
   static const publicRtlPluginUrl = 'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js';
 
-  /// Your own Kharita server (see server/README.md), e.g. `https://maps.example.com`.
-  factory KharitaProvider.selfHosted(String baseUrl) {
+  /// Your own Mapeleven server (see server/README.md), e.g. `https://maps.example.com`.
+  factory MapelevenProvider.selfHosted(String baseUrl) {
     final base = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
-    return KharitaProvider(
+    return MapelevenProvider(
       id: 'self-hosted',
       styleUrlBuilder: (theme, language) => '$base/styles/${theme.name}-${language.name}.json',
       localizeOnClient: false,
@@ -37,13 +37,13 @@ class KharitaProvider {
 
   /// OpenFreeMap public tiles (free, no key) and the public Photon demo for
   /// search. Good for development and small apps; both are community services
-  /// under fair-use terms, so use [KharitaProvider.selfHosted] before real traffic.
-  factory KharitaProvider.openFreeMap({String searchUrl = 'https://photon.komoot.io'}) {
-    return KharitaProvider(
+  /// under fair-use terms, so use [MapelevenProvider.selfHosted] before real traffic.
+  factory MapelevenProvider.openFreeMap({String searchUrl = 'https://photon.komoot.io'}) {
+    return MapelevenProvider(
       id: 'openfreemap',
       styleUrlBuilder: (theme, _) => switch (theme) {
-        KharitaTheme.light => 'https://tiles.openfreemap.org/styles/liberty',
-        KharitaTheme.dark || KharitaTheme.black => 'https://tiles.openfreemap.org/styles/dark',
+        MapelevenTheme.light => 'https://tiles.openfreemap.org/styles/liberty',
+        MapelevenTheme.dark || MapelevenTheme.black => 'https://tiles.openfreemap.org/styles/dark',
         _ => 'https://tiles.openfreemap.org/styles/positron',
       },
       localizeOnClient: true,
@@ -55,7 +55,7 @@ class KharitaProvider {
   final String id;
 
   /// Builds the style URL for a theme and language.
-  final String Function(KharitaTheme, KharitaLanguage) styleUrlBuilder;
+  final String Function(MapelevenTheme, MapelevenLanguage) styleUrlBuilder;
 
   /// True when the style is single-language and labels are rewritten on the client.
   final bool localizeOnClient;
@@ -72,5 +72,5 @@ class KharitaProvider {
   /// Script that shapes Arabic labels in MapLibre GL JS (Flutter web only).
   final String rtlPluginUrl;
 
-  String styleUrl(KharitaTheme theme, KharitaLanguage language) => styleUrlBuilder(theme, language);
+  String styleUrl(MapelevenTheme theme, MapelevenLanguage language) => styleUrlBuilder(theme, language);
 }

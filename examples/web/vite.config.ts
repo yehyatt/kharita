@@ -8,6 +8,6 @@ export default defineConfig({
   optimizeDeps: { exclude: ["maplibre-gl"] },
   resolve: {
     dedupe: ["maplibre-gl"],
-    alias: [{ find: /^kharita$/, replacement: fileURLToPath(new URL("../../packages/kharita-web/src/index.ts", import.meta.url)) }],
+    alias: [{ find: /^mapeleven$/, replacement: fileURLToPath(new URL("../../packages/mapeleven-web/src/index.ts", import.meta.url)) }],
   },
 });

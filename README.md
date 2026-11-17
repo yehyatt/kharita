@@ -1,6 +1,6 @@
-# Kharita (خريطة)
+# Mapeleven
 
-Open maps made simple for **Flutter** and the **web**. Kharita wraps
+Open maps made simple for **Flutter** and the **web**. Mapeleven wraps
 [MapLibre](https://maplibre.org) and [OpenStreetMap](https://www.openstreetmap.org) data
 in one small API with Arabic-first styles, place search, and a self-hostable server
 that runs on a single Hetzner box.
@@ -12,23 +12,23 @@ that runs on a single Hetzner box.
 
 | Package | Platforms | Path |
 |---|---|---|
-| `kharita` (pub.dev) | Android, iOS, Flutter web | `packages/kharita_flutter` |
-| `kharita` (npm) | Any web app | `packages/kharita-web` |
+| `mapeleven` (pub.dev) | Android, iOS, Flutter web | `packages/mapeleven_flutter` |
+| `mapeleven` (npm) | Any web app | `packages/mapeleven-web` |
 | Map server | Docker on any VPS | `server/` |
 
 ## Quick start: web
 
 ```bash
-npm install kharita maplibre-gl
+npm install mapeleven maplibre-gl
 ```
 
 ```ts
-import { KharitaMap, openFreeMap } from "kharita";
-import "kharita/style.css";
+import { MapelevenMap, openFreeMap } from "mapeleven";
+import "mapeleven/style.css";
 // Vite: MapLibre 6 needs its worker URL when bundled.
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 
-const map = new KharitaMap("map", { provider: openFreeMap(), language: "ar", workerUrl });
+const map = new MapelevenMap("map", { provider: openFreeMap(), language: "ar", workerUrl });
 
 map.addMarker([35.9106, 31.9539], { popup: "عمّان" });
 map.addGeoJSON("branches", branchesGeoJson, { cluster: true, onClick: (f) => console.log(f.properties) });
@@ -46,19 +46,19 @@ With Vite, also add `optimizeDeps: { exclude: ["maplibre-gl"] }` to `vite.config
 
 ```yaml
 dependencies:
-  kharita: ^0.1.0
+  mapeleven: ^0.1.0
 ```
 
 ```dart
-KharitaMap(
-  provider: KharitaProvider.openFreeMap(),
-  language: KharitaLanguage.ar,
-  theme: KharitaTheme.light,
+MapelevenMap(
+  provider: MapelevenProvider.openFreeMap(),
+  language: MapelevenLanguage.ar,
+  theme: MapelevenTheme.light,
   onMapReady: (map) async {
     await map.addMarker(const LatLng(31.9539, 35.9106), label: 'عمّان');
     await map.addGeoJson('branches', branchesGeoJson,
-        options: const KharitaGeoJsonOptions(cluster: true));
-    final places = await map.search.search('الجامعة الأردنية', language: KharitaLanguage.ar);
+        options: const MapelevenGeoJsonOptions(cluster: true));
+    final places = await map.search.search('الجامعة الأردنية', language: MapelevenLanguage.ar);
     await map.flyTo(places.first.position);
   },
 )
@@ -81,7 +81,7 @@ Moving to production is one line: `selfHosted("https://maps.example.com")`. See 
 ```bash
 cd examples/web && npm install && npm run dev                 # http://localhost:5173
 cd examples/flutter && flutter run                            # phone, emulator or -d chrome
-flutter run --dart-define=KHARITA_SERVER=https://maps.example.com   # against your server
+flutter run --dart-define=MAPELEVEN_SERVER=https://maps.example.com   # against your server
 ```
 
 ## What is in v0.1

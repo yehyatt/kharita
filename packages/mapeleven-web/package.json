@@ -1,15 +1,15 @@
 {
-  "name": "kharita",
+  "name": "mapeleven",
   "version": "0.1.0",
   "description": "Open maps made simple: OpenStreetMap + MapLibre with Arabic-first styles, search and self-hostable tiles.",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/kharita.js",
-  "module": "./dist/kharita.js",
+  "main": "./dist/mapeleven.js",
+  "module": "./dist/mapeleven.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/kharita.js" },
-    "./style.css": "./dist/kharita.css"
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/mapeleven.js" },
+    "./style.css": "./dist/mapeleven.css"
   },
   "files": ["dist"],
   "sideEffects": ["*.css"],

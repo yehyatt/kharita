@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'provider.dart';
 
 /// Expression that picks the label in [language], falling back to the local name.
-List<Object> nameExpression(KharitaLanguage language) => language == KharitaLanguage.en
+List<Object> nameExpression(MapelevenLanguage language) => language == MapelevenLanguage.en
     ? [
         'coalesce',
         ['get', 'name:en'],
@@ -21,7 +21,7 @@ final _nameRef = RegExp(r'"name[:_"]');
 
 /// Rewrites the name labels of an OpenMapTiles-schema style to one language.
 /// House numbers and road refs are left alone.
-Map<String, dynamic> localizeStyle(Map<String, dynamic> style, KharitaLanguage language) {
+Map<String, dynamic> localizeStyle(Map<String, dynamic> style, MapelevenLanguage language) {
   final expr = nameExpression(language);
   final layers = (style['layers'] as List).map((raw) {
     final layer = raw as Map<String, dynamic>;

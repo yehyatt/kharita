@@ -120,13 +120,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.13.1"
-  kharita:
-    dependency: "direct main"
-    description:
-      path: "../../packages/kharita_flutter"
-      relative: true
-    source: path
-    version: "0.1.0"
   leak_tracker:
     dependency: transitive
     description:
@@ -159,6 +152,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
+  mapeleven:
+    dependency: "direct main"
+    description:
+      path: "../../packages/mapeleven_flutter"
+      relative: true
+    source: path
+    version: "0.1.0"
   maplibre_gl:
     dependency: transitive
     description:

@@ -1,4 +1,4 @@
-# Kharita map server: vector tiles, styles, fonts and search on one Hetzner box.
+# Mapeleven map server: vector tiles, styles, fonts and search on one Hetzner box.
 # Copy .env.example to .env, then follow README.md.
 services:
   caddy:

@@ -6,8 +6,8 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import 'provider.dart';
 
 /// A search or reverse-geocoding result.
-class KharitaPlace {
-  const KharitaPlace({
+class MapelevenPlace {
+  const MapelevenPlace({
     required this.name,
     required this.address,
     required this.position,
@@ -40,15 +40,15 @@ class KharitaPlace {
 }
 
 /// Forward and reverse geocoding against a Photon server.
-class KharitaSearch {
-  KharitaSearch(this.provider, {http.Client? client}) : _client = client ?? http.Client();
+class MapelevenSearch {
+  MapelevenSearch(this.provider, {http.Client? client}) : _client = client ?? http.Client();
 
-  final KharitaProvider provider;
+  final MapelevenProvider provider;
   final http.Client _client;
 
   bool get available => provider.searchUrl != null;
 
-  Future<List<KharitaPlace>> search(String query, {KharitaLanguage? language, LatLng? near, int limit = 8}) async {
+  Future<List<MapelevenPlace>> search(String query, {MapelevenLanguage? language, LatLng? near, int limit = 8}) async {
     final q = query.trim();
     if (q.isEmpty) return const [];
     return _fetch('api', language, {
@@ -59,7 +59,7 @@ class KharitaSearch {
     });
   }
 
-  Future<KharitaPlace?> reverse(LatLng position, {KharitaLanguage? language}) async {
+  Future<MapelevenPlace?> reverse(LatLng position, {MapelevenLanguage? language}) async {
     final places = await _fetch('reverse', language, {
       'lat': '${position.latitude}',
       'lon': '${position.longitude}',
@@ -68,7 +68,7 @@ class KharitaSearch {
     return places.isEmpty ? null : places.first;
   }
 
-  Future<List<KharitaPlace>> _fetch(String path, KharitaLanguage? language, Map<String, String> params) async {
+  Future<List<MapelevenPlace>> _fetch(String path, MapelevenLanguage? language, Map<String, String> params) async {
     final base = provider.searchUrl;
     if (base == null) throw StateError('Provider "${provider.id}" has no search service');
     // Photon only accepts languages present in its index; "default" returns local names.
@@ -77,14 +77,14 @@ class KharitaSearch {
     final res = await _client.get(uri);
     if (res.statusCode != 200) throw http.ClientException('Search failed: HTTP ${res.statusCode}', uri);
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
-    final separator = language == KharitaLanguage.en ? ', ' : '، ';
+    final separator = language == MapelevenLanguage.en ? ', ' : '، ';
     return (body['features'] as List).map((f) => _toPlace(f as Map<String, dynamic>, separator)).toList();
   }
 
   void close() => _client.close();
 }
 
-KharitaPlace _toPlace(Map<String, dynamic> f, String separator) {
+MapelevenPlace _toPlace(Map<String, dynamic> f, String separator) {
   final p = f['properties'] as Map<String, dynamic>;
   final coords = (f['geometry'] as Map<String, dynamic>)['coordinates'] as List;
   String? s(String key) => p[key]?.toString();
@@ -97,7 +97,7 @@ KharitaPlace _toPlace(Map<String, dynamic> f, String separator) {
     s('country') != name ? s('country') : null,
   ].whereType<String>().join(separator);
   final extent = (p['extent'] as List?)?.cast<num>();
-  return KharitaPlace(
+  return MapelevenPlace(
     name: name,
     address: address,
     position: LatLng((coords[1] as num).toDouble(), (coords[0] as num).toDouble()),

@@ -8,6 +8,6 @@ export function ensureRtlPlugin(url: string): void {
   requested = true;
   maplibregl.setRTLTextPlugin(url, true).catch((err: unknown) => {
     requested = false;
-    console.warn("[kharita] RTL text plugin failed to load; Arabic labels may render incorrectly", err);
+    console.warn("[mapeleven] RTL text plugin failed to load; Arabic labels may render incorrectly", err);
   });
 }

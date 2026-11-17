@@ -1,4 +1,4 @@
-# Kharita map server
+# Mapeleven map server
 
 One Docker Compose stack that serves everything the SDKs need:
 
@@ -20,7 +20,7 @@ a larger region mostly costs disk for tiles and RAM for Photon (raise `PHOTON_HE
 ## Setup
 
 ```bash
-git clone https://github.com/yehyatt/kharita && cd kharita/server
+git clone https://github.com/yehyatt/mapeleven && cd mapeleven/server
 cp .env.example .env              # set DOMAIN, REGION_BBOX, ...
 ./scripts/extract-tiles.sh        # region cut from the latest daily OSM planet build
 ./scripts/fetch-assets.sh         # fonts, sprites, RTL plugin

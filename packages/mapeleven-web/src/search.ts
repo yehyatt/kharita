@@ -1,6 +1,6 @@
-import type { KharitaLanguage, KharitaProvider } from "./provider";
+import type { MapelevenLanguage, MapelevenProvider } from "./provider";
 
-export interface KharitaPlace {
+export interface MapelevenPlace {
   name: string;
   /** Where it is, without the name: street, district, city, country. */
   address: string;
@@ -19,7 +19,7 @@ export interface KharitaPlace {
 }
 
 export interface SearchOptions {
-  language?: KharitaLanguage;
+  language?: MapelevenLanguage;
   /** Bias results towards this point (e.g. the map centre). */
   near?: { lat: number; lng: number };
   /** Restrict to [minLng, minLat, maxLng, maxLat]. */
@@ -29,14 +29,14 @@ export interface SearchOptions {
 }
 
 /** Forward and reverse geocoding against a Photon server. */
-export class KharitaSearch {
-  constructor(private readonly provider: KharitaProvider) {}
+export class MapelevenSearch {
+  constructor(private readonly provider: MapelevenProvider) {}
 
   get available(): boolean {
     return Boolean(this.provider.searchUrl);
   }
 
-  async search(query: string, options: SearchOptions = {}): Promise<KharitaPlace[]> {
+  async search(query: string, options: SearchOptions = {}): Promise<MapelevenPlace[]> {
     const q = query.trim();
     if (!q) return [];
     const params = this.params(options);
@@ -50,7 +50,7 @@ export class KharitaSearch {
     return this.fetchPlaces("api", params, options);
   }
 
-  async reverse(lat: number, lng: number, options: Omit<SearchOptions, "near" | "bbox"> = {}): Promise<KharitaPlace | null> {
+  async reverse(lat: number, lng: number, options: Omit<SearchOptions, "near" | "bbox"> = {}): Promise<MapelevenPlace | null> {
     const params = this.params(options);
     params.set("lat", String(lat));
     params.set("lon", String(lng));
@@ -67,7 +67,7 @@ export class KharitaSearch {
     return params;
   }
 
-  private async fetchPlaces(path: string, params: URLSearchParams, options: SearchOptions): Promise<KharitaPlace[]> {
+  private async fetchPlaces(path: string, params: URLSearchParams, options: SearchOptions): Promise<MapelevenPlace[]> {
     if (!this.provider.searchUrl) throw new Error(`Provider "${this.provider.id}" has no search service`);
     const res = await fetch(`${this.provider.searchUrl}/${path}?${params}`, { signal: options.signal });
     if (!res.ok) throw new Error(`Search failed: HTTP ${res.status}`);
@@ -84,7 +84,7 @@ interface PhotonResponse {
   }[];
 }
 
-function toPlace(f: PhotonResponse["features"][number], separator: string): KharitaPlace {
+function toPlace(f: PhotonResponse["features"][number], separator: string): MapelevenPlace {
   const p = f.properties as Record<string, string | undefined>;
   const [lng, lat] = f.geometry.coordinates;
   const street = p.street ? [p.street, p.housenumber].filter(Boolean).join(" ") : undefined;

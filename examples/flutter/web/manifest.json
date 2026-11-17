@@ -1,6 +1,6 @@
 {
-    "name": "kharita_example",
-    "short_name": "kharita_example",
+    "name": "mapeleven_example",
+    "short_name": "mapeleven_example",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
