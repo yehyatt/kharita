@@ -133,9 +133,19 @@ class MapelevenSearch {
     final lang = language != null && provider.searchLanguages.contains(language.name) ? language.name : 'default';
     final uri = Uri.parse(
       '$base/$path',
-    ).replace(queryParameters: {...params, 'lang': lang, if (osmTags.isNotEmpty) 'osm_tag': osmTags});
+    ).replace(
+      queryParameters: {
+        ...params,
+        'lang': lang,
+        if (osmTags.isNotEmpty) 'osm_tag': osmTags,
+        if (provider.key != null) 'key': provider.key!,
+      },
+    );
     final res = await _client.get(uri);
-    if (res.statusCode != 200) throw http.ClientException('Search failed: HTTP ${res.statusCode}', uri);
+    if (res.statusCode != 200) {
+      final reason = _errorMessage(res.bodyBytes);
+      throw http.ClientException('Search failed: HTTP ${res.statusCode}${reason == null ? '' : ': $reason'}', uri);
+    }
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     final separator = language == MapelevenLanguage.en ? ', ' : '، ';
     return (body['features'] as List).map((f) => _toPlace(f as Map<String, dynamic>, separator)).toList();
@@ -183,4 +193,14 @@ MapelevenPlace _toPlace(Map<String, dynamic> f, String separator) {
     properties: p,
     separator: separator,
   );
+}
+
+/// The server's error message (`{"error": "..."}`), if the body has one.
+String? _errorMessage(List<int> body) {
+  try {
+    final decoded = jsonDecode(utf8.decode(body));
+    return decoded is Map && decoded['error'] is String ? decoded['error'] as String : null;
+  } catch (_) {
+    return null;
+  }
 }

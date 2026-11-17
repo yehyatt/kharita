@@ -8,7 +8,7 @@ description: Move a Flutter or web app from Mapbox to Mapeleven, an open-source 
 
 Mapeleven runs on [MapLibre](https://maplibre.org), the open-source continuation of Mapbox GL. When Mapbox moved Mapbox GL JS v2 to a proprietary licence in December 2020, the community forked the last open release (v1.13) as MapLibre GL JS. So on the web most of your map code carries over, and in Flutter the concepts are the same.
 
-What you gain: no access token in your builds, no per-map-load or per-user billing, OpenStreetMap data you can host yourself, and labels in Arabic or English with correct right-to-left shaping. What you give up today: Mapbox's own styles (`mapbox://` URLs and Mapbox Standard), Mapbox satellite imagery, live traffic, and the Directions API (road routing is on the [roadmap](https://github.com/yehyatt/mapeleven/blob/main/docs/ROADMAP.md)).
+What you gain: a free key in a minute with no card, no per-map-load or per-user billing, OpenStreetMap data you can host yourself, and labels in Arabic or English with correct right-to-left shaping. What you give up today: Mapbox's own styles (`mapbox://` URLs and Mapbox Standard), Mapbox satellite imagery, live traffic, and the Directions API (road routing is on the [roadmap](https://github.com/yehyatt/mapeleven/blob/main/docs/ROADMAP.md)).
 
 ## Web: Mapbox GL JS
 
@@ -32,7 +32,7 @@ After:
 ```js
 import { MapelevenMap, hosted } from "mapeleven";
 
-const map = new MapelevenMap("map", { provider: hosted(), center: [35.91, 31.95], zoom: 12 });
+const map = new MapelevenMap("map", { provider: hosted({ key: "mel_..." }), center: [35.91, 31.95], zoom: 12 });
 map.addMarker([35.91, 31.95]);
 ```
 
@@ -42,7 +42,7 @@ With a bundler such as Vite, also pass `workerUrl` and import `mapeleven/style.c
 
 | Mapbox GL JS | Mapeleven web |
 |---|---|
-| `mapboxgl.accessToken = …` | Not needed |
+| `mapboxgl.accessToken = …` | `hosted({ key: "mel_…" })`: a free key from [your account](https://mapeleven.dev/account/), optional while developing |
 | `style: "mapbox://styles/…"` | `theme: "light"` (also `dark`, `white`, `grayscale`, `black`) |
 | `new mapboxgl.Map({...})` | `new MapelevenMap(el, {...})`; the MapLibre map is `map.map` |
 | `new mapboxgl.Marker().setLngLat(p).addTo(map)` | `map.addMarker(p, { color, popup })` |
@@ -59,7 +59,7 @@ Full details: [Web guide](web.md).
 
 | mapbox_maps_flutter | Mapeleven |
 |---|---|
-| `MapboxOptions.setAccessToken(…)` | Not needed |
+| `MapboxOptions.setAccessToken(…)` | `MapelevenProvider.hosted(key: 'mel_…')` |
 | `MapWidget(cameraOptions: CameraOptions(center: Point(coordinates: Position(lng, lat)), zoom: z))` | `MapelevenMap(provider: MapelevenProvider.hosted(), initialCenter: LatLng(lat, lng), initialZoom: z)` |
 | `onMapCreated: (MapboxMap map) {}` | `onMapReady: (MapelevenController map) {}` |
 | `styleUri: MapboxStyles.MAPBOX_STREETS` | `theme: MapelevenTheme.light` |
@@ -81,4 +81,4 @@ Mapbox's Geocoding and Search Box APIs become Mapeleven search, served by [Photo
 
 1. Add Mapeleven next to Mapbox behind a flag, on one screen first.
 2. Compare search and reverse geocoding results for your real addresses, and fix any naming differences in your own lookup tables.
-3. Switch the flag for everyone, keep Mapbox for one release as a fallback, then remove the token from your builds and rotate it.
+3. Switch the flag for everyone, keep Mapbox for one release as a fallback, then remove the Mapbox token from your builds and rotate it.

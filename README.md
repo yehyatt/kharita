@@ -52,7 +52,7 @@ With Vite, also add `optimizeDeps: { exclude: ["maplibre-gl"] }` to `vite.config
 ```yaml
 dependencies:
   mapeleven:
-    git: { url: https://github.com/yehyatt/mapeleven, path: packages/mapeleven_flutter, ref: v0.2.1 }
+    git: { url: https://github.com/yehyatt/mapeleven, path: packages/mapeleven_flutter, ref: v0.3.0 }
 ```
 
 ```dart
@@ -77,7 +77,7 @@ To show the user's location, request location permission in your app and pass `s
 
 | Provider | Tiles | Search | Use for |
 |---|---|---|---|
-| `hosted()` | mapeleven.dev: Jordan and the GCC | About a million places, Arabic and English | Apps in the region, demos, pilots |
+| `hosted(key: ...)` | mapeleven.dev with a free key ([get one](https://mapeleven.dev/account/)): Jordan and the GCC | About a million places, Arabic and English | Production apps in the region; `hosted()` without a key for trying it out |
 | `openFreeMap()` | [OpenFreeMap](https://openfreemap.org) public tiles | [Photon](https://photon.komoot.io) public demo | Development, prototypes, small apps |
 | `selfHosted(url)` | Your server (Protomaps extract) | Your Photon index | Production |
 

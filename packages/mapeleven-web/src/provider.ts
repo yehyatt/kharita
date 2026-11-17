@@ -20,16 +20,20 @@ export interface MapelevenProvider {
   readonly fontStack: string[];
   /** Script that shapes Arabic and Hebrew text in MapLibre GL JS. */
   readonly rtlPluginUrl: string;
+  /** API key sent with style and search requests, if the server issues keys. */
+  readonly key?: string;
 }
 
 const PUBLIC_RTL_PLUGIN = "https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js";
 
 /** Your own Mapeleven server (see server/README.md), e.g. `https://maps.example.com`. */
-export function selfHosted(baseUrl: string): MapelevenProvider {
+export function selfHosted(baseUrl: string, options: { key?: string } = {}): MapelevenProvider {
   const base = baseUrl.replace(/\/$/, "");
+  const query = options.key ? `?key=${encodeURIComponent(options.key)}` : "";
   return {
     id: "self-hosted",
-    styleUrl: (theme, language) => `${base}/styles/${theme}-${language}.json`,
+    key: options.key,
+    styleUrl: (theme, language) => `${base}/styles/${theme}-${language}.json${query}`,
     localizeOnClient: false,
     searchUrl: `${base}/search`,
     searchLanguages: ["ar", "en"],
@@ -56,9 +60,14 @@ export function openFreeMap(options: { searchUrl?: string } = {}): MapelevenProv
   };
 }
 
-/** The public Mapeleven server at mapeleven.dev: Jordan and the GCC, Arabic and English search. Fair use. */
-export function hosted(baseUrl = "https://mapeleven.dev"): MapelevenProvider {
-  return { ...selfHosted(baseUrl), id: "hosted" };
+/**
+ * The hosted Mapeleven service at mapeleven.dev. Pass your free key from https://mapeleven.dev/account/
+ * for production: `hosted({ key: "mel_..." })`. Without a key it works for development, with searches
+ * limited per visitor. A string argument is a different server URL (kept for 0.2 code).
+ */
+export function hosted(options: string | { key?: string; baseUrl?: string } = {}): MapelevenProvider {
+  const { key, baseUrl = "https://mapeleven.dev" } = typeof options === "string" ? { baseUrl: options } : options;
+  return { ...selfHosted(baseUrl, { key }), id: "hosted" };
 }
 
 export const providers = { selfHosted, openFreeMap, hosted };

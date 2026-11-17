@@ -84,13 +84,17 @@ export class MapelevenSearch {
     const lang = options.language;
     // Photon only accepts languages present in its index; "default" returns local names.
     params.set("lang", lang && this.provider.searchLanguages.includes(lang) ? lang : "default");
+    if (this.provider.key) params.set("key", this.provider.key);
     return params;
   }
 
   private async fetchPlaces(path: string, params: URLSearchParams, options: SearchOptions): Promise<MapelevenPlace[]> {
     if (!this.provider.searchUrl) throw new Error(`Provider "${this.provider.id}" has no search service`);
     const res = await fetch(`${this.provider.searchUrl}/${path}?${params}`, { signal: options.signal });
-    if (!res.ok) throw new Error(`Search failed: HTTP ${res.status}`);
+    if (!res.ok) {
+      const reason = await res.json().then((b: { error?: string }) => b.error, () => undefined);
+      throw new Error(`Search failed: HTTP ${res.status}${reason ? `: ${reason}` : ""}`);
+    }
     const body = (await res.json()) as PhotonResponse;
     const separator = options.language === "en" ? ", " : "، ";
     return body.features.map((f) => toPlace(f, separator));

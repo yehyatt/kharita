@@ -7,16 +7,32 @@
 	}
 
 	# Vector tiles + TileJSON from go-pmtiles: /tiles/mena.json, /tiles/mena/{z}/{x}/{y}.mvt
-	handle_path /tiles/* {
-		reverse_proxy tiles:8080
+	# Requests with ?key= are checked and counted by the api service first.
+	handle /tiles/* {
+		@keyed query key=*
+		route {
+			forward_auth @keyed api:8081 {
+				uri /check
+			}
+			uri query -key
+			uri strip_prefix /tiles
+			reverse_proxy tiles:8080
+		}
 		header Cache-Control "public, max-age=86400"
 	}
 
-	# Generated MapLibre styles: /styles/light-ar.json ...
-	handle_path /styles/* {
-		root * /srv/styles
-		file_server
-		header Cache-Control "public, max-age=3600"
+	# MapLibre styles: /styles/light-ar.json ... served by the api service, which puts
+	# the key (?key=) on the tile URLs and counts map loads.
+	handle /styles/* {
+		reverse_proxy api:8081
+	}
+
+	# Accounts, keys and usage (dashboard at /account/).
+	handle /api/* {
+		reverse_proxy api:8081
+	}
+	handle /auth/* {
+		reverse_proxy api:8081
 	}
 
 	# Fonts (glyph PBFs) and sprites
@@ -27,8 +43,16 @@
 	}
 
 	# Photon geocoder: /search/api?q=..., /search/reverse?lat=..&lon=..
-	handle_path /search/* {
-		reverse_proxy search:2322
+	# The api service checks the key (or the per-IP limit without one) and counts the search.
+	handle /search/* {
+		route {
+			forward_auth api:8081 {
+				uri /check
+			}
+			uri query -key
+			uri strip_prefix /search
+			reverse_proxy search:2322
+		}
 	}
 
 	# Website, docs and the Explorer demo (website/deploy.sh uploads them to data/site).

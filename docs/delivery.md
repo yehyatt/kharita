@@ -14,7 +14,7 @@ The pin stays in the middle of the screen; the customer moves the map under it. 
 ```dart
 Stack(children: [
   MapelevenMap(
-    provider: MapelevenProvider.hosted(),
+    provider: MapelevenProvider.hosted(key: 'mel_...'),
     initialCenter: lastKnownOrCityCentre,
     initialZoom: 16,
     onMapReady: (map) => _map = map,

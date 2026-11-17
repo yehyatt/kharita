@@ -26,17 +26,21 @@ class MapelevenProvider {
     this.fontStack = const ['Noto Sans Regular'],
     this.rtlPluginUrl = publicRtlPluginUrl,
     this.poiSource,
+    this.key,
   });
 
   /// Public copy of the plugin that shapes Arabic text on Flutter web.
   static const publicRtlPluginUrl = 'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js';
 
   /// Your own Mapeleven server (see server/README.md), e.g. `https://maps.example.com`.
-  factory MapelevenProvider.selfHosted(String baseUrl) {
+  /// Pass [key] if the server issues API keys.
+  factory MapelevenProvider.selfHosted(String baseUrl, {String? key}) {
     final base = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    final query = key == null ? '' : '?key=${Uri.encodeQueryComponent(key)}';
     return MapelevenProvider(
       id: 'self-hosted',
-      styleUrlBuilder: (theme, language) => '$base/styles/${theme.name}-${language.name}.json',
+      key: key,
+      styleUrlBuilder: (theme, language) => '$base/styles/${theme.name}-${language.name}.json$query',
       localizeOnClient: false,
       searchUrl: '$base/search',
       searchLanguages: const ['ar', 'en'],
@@ -45,9 +49,12 @@ class MapelevenProvider {
     );
   }
 
-  /// The public Mapeleven server at mapeleven.dev: Jordan and the GCC with
-  /// Arabic and English search. Fair use; self-host for heavy traffic.
-  factory MapelevenProvider.hosted({String baseUrl = 'https://mapeleven.dev'}) => MapelevenProvider.selfHosted(baseUrl);
+  /// The hosted Mapeleven service at mapeleven.dev. Pass your free [key] from
+  /// https://mapeleven.dev/account/ for production: it carries your monthly
+  /// allowance and usage stats. Without a key it works for development, with
+  /// searches limited per device.
+  factory MapelevenProvider.hosted({String? key, String baseUrl = 'https://mapeleven.dev'}) =>
+      MapelevenProvider.selfHosted(baseUrl, key: key);
 
   /// OpenFreeMap public tiles (free, no key) and the public Photon demo for
   /// search. Good for development and small apps; both are community services
@@ -68,6 +75,9 @@ class MapelevenProvider {
   }
 
   final String id;
+
+  /// API key sent with style and search requests, or null.
+  final String? key;
 
   /// Builds the style URL for a theme and language.
   final String Function(MapelevenTheme, MapelevenLanguage) styleUrlBuilder;

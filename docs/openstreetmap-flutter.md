@@ -39,12 +39,12 @@ dependencies:
     git:
       url: https://github.com/yehyatt/mapeleven
       path: packages/mapeleven_flutter
-      ref: v0.2.1
+      ref: v0.3.0
 ```
 
 ```dart
 MapelevenMap(
-  provider: MapelevenProvider.hosted(),
+  provider: MapelevenProvider.hosted(key: 'mel_...'), // free key: mapeleven.dev/account
   initialCenter: const LatLng(31.9539, 35.9106),
   initialZoom: 13,
   onMapReady: (map) => map.addMarker(const LatLng(31.9539, 35.9106), label: 'Hello'),

@@ -14,7 +14,7 @@ What you gain: no API keys in your builds, no per-request billing, Arabic and En
 
 | google_maps_flutter | Mapeleven |
 |---|---|
-| `GoogleMap(...)` | `MapelevenMap(provider: MapelevenProvider.hosted(), ...)` |
+| `GoogleMap(...)` | `MapelevenMap(provider: MapelevenProvider.hosted(key: ...), ...)` |
 | `GoogleMapController` | `MapelevenController` (from `onMapReady`) |
 | `initialCameraPosition: CameraPosition(target: t, zoom: z)` | `initialCenter: t, initialZoom: z` |
 | `onMapCreated: (c) {}` | `onMapReady: (map) {}` (fires once the style has loaded) |
@@ -60,7 +60,7 @@ After:
 
 ```dart
 MapelevenMap(
-  provider: MapelevenProvider.hosted(),
+  provider: MapelevenProvider.hosted(key: 'mel_...'),
   language: isArabic ? MapelevenLanguage.ar : MapelevenLanguage.en,
   initialCenter: LatLng(lat, lng),
   initialZoom: 16,

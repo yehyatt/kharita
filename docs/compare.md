@@ -15,7 +15,7 @@ All three put an interactive map, markers and address search in a Flutter or web
 | SDK licence | MIT (open source) | Proprietary since GL JS v2 (2020) | Proprietary |
 | Map engine | MapLibre (open-source fork of Mapbox GL) | Mapbox GL | Google |
 | Map data | OpenStreetMap | OpenStreetMap plus Mapbox's own sources | Google's own |
-| API key or token | None | Required | Required |
+| API key or token | Free key, no card; optional while developing | Required | Required |
 | Billing | None for the software; you pay for your server | Usage-based beyond a free tier | Usage-based beyond a monthly credit |
 | Self-hosting | Yes: one Docker Compose stack | No | No |
 | Where locations go | Your server, or mapeleven.dev | Mapbox | Google |
@@ -33,7 +33,7 @@ Pricing of the other two changes often; check their pricing pages for current nu
 
 ## Choose Mapeleven when
 
-- You want no API key in your app and no bill that grows with your users.
+- You want a free key with no card and no bill that grows with your users.
 - Locations must stay on servers you choose, for example for a bank, a public body, or a data protection review.
 - Your map is for delivery, logistics, field work or store finders: address picking, zones, clusters and moving vehicles.
 - You build in Arabic and English and want both to look right without extra work.

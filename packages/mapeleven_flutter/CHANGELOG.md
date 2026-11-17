@@ -1,3 +1,9 @@
+## 0.3.0
+
+- API keys for the hosted service: `MapelevenProvider.hosted(key: 'mel_...')` and `selfHosted(url, key: ...)`. Get a free key at https://mapeleven.dev/account/. The key goes on the style URL (the server puts it on the tile URLs) and on search requests. Without a key everything works as before, with searches limited per device.
+- Search errors include the server's message (for example a reached monthly limit).
+- Web SDK: `hosted({ key })`; `hosted("https://...")` still takes a server URL.
+
 ## 0.2.1
 
 - The map language now follows the app: leave `language` null and `MapelevenMap` uses the `MaterialApp` locale (else the device), Arabic for Arabic and English otherwise. Pass `language` to fix it, as before. Previously the default was always Arabic.

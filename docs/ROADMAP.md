@@ -5,7 +5,19 @@
 Hosted server at mapeleven.dev, marker icons and live vehicle markers, centre-pin picker support,
 basemap places (tap and nearby), richer search with admin areas, the Explorer demo app, the website and docs.
 
-## v0.3: routing and offline
+## v0.3 (done): hosted service with free keys
+
+Sign in with GitHub at mapeleven.dev/account, free API keys with optional domain restrictions, monthly
+allowances (50,000 map loads and 50,000 searches per account), usage charts, keys in both SDKs.
+Requests without a key keep working, with searches limited per IP.
+
+## v0.4: the whole world
+
+- World tiles and world search on a larger dedicated server.
+- A CDN in front of the tiles, uptime monitoring.
+- A hosted style editor (Maputnik) saving custom styles to your account.
+
+## v0.5: routing and offline
 
 - Offline regions: download a bounding box for use without a connection (MapLibre offline packs on Flutter, PMTiles file on web).
 - Routing with [Valhalla](https://github.com/valhalla/valhalla) on the server: car, walking, cycling; route line drawing in the SDK.

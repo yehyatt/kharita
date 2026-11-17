@@ -10,10 +10,29 @@ services:
       REDIRECT_DOMAINS: ${REDIRECT_DOMAINS:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./data/styles:/srv/styles:ro
       - ./data/assets:/srv/assets:ro
       - ./data/site:/srv/site:ro
       - caddy_data:/data
+    depends_on: [tiles, api]
+
+  # Accounts, API keys, usage limits and styles (api/server.ts, no dependencies).
+  api:
+    image: oven/bun:1.3.9-alpine
+    restart: unless-stopped
+    working_dir: /app
+    command: ["bun", "run", "server.ts"]
+    environment:
+      DOMAIN: ${DOMAIN}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      FREE_MAP_LOADS: ${FREE_MAP_LOADS:-50000}
+      FREE_SEARCHES: ${FREE_SEARCHES:-50000}
+      ANON_SEARCH_PER_MINUTE: ${ANON_SEARCH_PER_MINUTE:-120}
+    volumes:
+      - ./api:/app:ro
+      - ./data/styles:/srv/styles:ro
+      - ./data/api:/data
     depends_on: [tiles]
 
   tiles:

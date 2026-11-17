@@ -23,6 +23,7 @@
       <a href="/docs/getting-started.html">Docs</a>
       <a href="/explorer/">Demo</a>
       <a href="/docs/compare.html">Compare</a>
+      <a href="/account/">Get a key</a>
       <a href="https://github.com/yehyatt/mapeleven" rel="noopener">GitHub</a>
     </nav>
   </header>
@@ -30,14 +31,15 @@
   <section class="hero">
     <div class="hero-text">
       <p class="eyebrow">Open source · Flutter and web · MapLibre and OpenStreetMap</p>
-      <h1>Open-source maps for Flutter and the web. <span>No API keys.</span></h1>
+      <h1>Open-source maps for Flutter and the web. <span>Free key, no card.</span></h1>
       <p class="lead">
         A free alternative to Mapbox and Google Maps: vector maps on OpenStreetMap, place search, custom markers,
         zones and live tracking, from one SDK. Labels follow your app's language, with Arabic and right-to-left done
         properly. Use the hosted server for Jordan and the Gulf, or run your own for any country.
       </p>
       <div class="cta">
-        <a class="btn primary" href="/docs/getting-started.html">Get started</a>
+        <a class="btn primary" href="/account/">Get a free key</a>
+        <a class="btn" href="/docs/getting-started.html">Read the docs</a>
         <a class="btn" href="/explorer/">Open the demo app</a>
       </div>
       <p class="fine">MIT licence · Map data © OpenStreetMap contributors</p>
@@ -93,7 +95,7 @@
       </div>
     </div>
 <pre data-panel="flutter"><code>MapelevenMap(
-  provider: MapelevenProvider.hosted(),
+  provider: MapelevenProvider.hosted(key: 'mel_...'),
   language: MapelevenLanguage.ar,
   onMapReady: (map) async {
     await map.registerIcon(await MapelevenIcon.fromIconData('truck', Icons.local_shipping));
@@ -107,7 +109,7 @@
 <pre data-panel="web" hidden><code>import { MapelevenMap, hosted } from "mapeleven";
 import "mapeleven/style.css";
 
-const map = new MapelevenMap("map", { provider: hosted(), language: "ar" });
+const map = new MapelevenMap("map", { provider: hosted({ key: "mel_..." }), language: "ar" });
 map.addMarker([35.9106, 31.9539], { popup: "عمّان" });
 map.addGeoJSON("stores", stores, { cluster: true, onClick: (f) => open(f.properties.id) });
 
@@ -151,7 +153,7 @@ const places = await map.search.search("صيدلية", { near: { lat: 31.95, lng
         <ul>
           <li>The SDKs (MIT) and the server software</li>
           <li>OpenStreetMap data (keep the attribution)</li>
-          <li>The hosted server at mapeleven.dev, fair use</li>
+          <li>A key for the hosted service: 50,000 map loads and 50,000 searches a month, no card</li>
         </ul>
       </div>
       <div>

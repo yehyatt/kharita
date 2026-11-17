@@ -6,15 +6,26 @@ order: 1
 
 # Getting started
 
-Mapeleven gives Flutter and web apps a full map stack on open data: vector maps, Arabic and English labels, place search, reverse geocoding, markers with your own icons, zones and clusters. There are no API keys and no per-request fees.
+Mapeleven gives Flutter and web apps a full map stack on open data: vector maps, Arabic and English labels, place search, reverse geocoding, markers with your own icons, zones and clusters. There are no per-request fees, and you can start without a key.
 
 You choose where the map data comes from with a **provider**. Your map code stays the same when you switch.
 
 | Provider | What it is | Use it for |
 |---|---|---|
-| `hosted()` | The Mapeleven server at `mapeleven.dev`: Jordan and the GCC, Arabic and English search | Apps in Jordan and the GCC, demos, pilots |
+| `hosted(key: ...)` | The hosted service at `mapeleven.dev`, with your free key | Production apps: your own monthly allowance and usage charts |
+| `hosted()` | The same service without a key; searches are limited per device | Trying things out and development |
 | `selfHosted(url)` | Your own copy of the server, any region you choose | Production at scale, other regions, full control |
 | `openFreeMap()` | Community tiles for the whole world, public Photon search | Prototypes outside the hosted region |
+
+## Get a free key
+
+1. Open [mapeleven.dev/account](https://mapeleven.dev/account/) and sign in with GitHub.
+2. Copy the key that is waiting for you (it starts with `mel_`).
+3. Pass it to the provider: `MapelevenProvider.hosted(key: 'mel_...')` in Flutter, `hosted({ key: "mel_..." })` on the web.
+
+Each account gets 50,000 map loads and 50,000 searches a month for free; tiles for those map loads are not counted against you. The account page shows your usage per day and per key. Keys are public, like Mapbox public tokens: they end up inside your app. To stop other websites from using yours, list your domains on the key.
+
+You can follow the steps below without a key first and add it later; nothing else changes.
 
 ## Flutter
 
@@ -26,10 +37,10 @@ dependencies:
     git:
       url: https://github.com/yehyatt/mapeleven
       path: packages/mapeleven_flutter
-      ref: v0.2.1
+      ref: v0.3.0
 ```
 
-The pub.dev release (`mapeleven: ^0.2.1`) follows; the API is the same.
+The pub.dev release (`mapeleven: ^0.3.0`) follows; the API is the same.
 
 ### 2. Platform setup
 
@@ -43,7 +54,7 @@ The pub.dev release (`mapeleven: ^0.2.1`) follows; the API is the same.
 import 'package:mapeleven/mapeleven.dart';
 
 MapelevenMap(
-  provider: MapelevenProvider.hosted(),
+  provider: MapelevenProvider.hosted(key: 'mel_...'), // your key from mapeleven.dev/account
   language: MapelevenLanguage.ar,
   initialCenter: const LatLng(31.9539, 35.9106), // Amman
   initialZoom: 13,
@@ -75,7 +86,7 @@ import "mapeleven/style.css";
 // Vite: MapLibre 6 needs its worker URL when bundled.
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 
-const map = new MapelevenMap("map", { provider: hosted(), language: "ar", zoom: 13, workerUrl });
+const map = new MapelevenMap("map", { provider: hosted({ key: "mel_..." }), language: "ar", zoom: 13, workerUrl });
 map.addMarker([35.9106, 31.9539], { popup: "عمّان" });
 ```
 

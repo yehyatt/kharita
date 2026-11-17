@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terms and privacy · Mapeleven</title>
+  <meta name="description" content="Terms of use and privacy for the hosted Mapeleven service at mapeleven.dev." />
+  <link rel="canonical" href="https://mapeleven.dev/terms.html" />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="/"><img src="/static/favicon.svg" alt="" width="26" height="26" /> Mapeleven</a>
+    <nav>
+      <a href="/docs/getting-started.html">Docs</a>
+      <a href="/explorer/">Demo</a>
+      <a href="/account/">Account</a>
+    </nav>
+  </header>
+  <section class="doc" style="max-width: 760px">
+    <h1>Terms and privacy</h1>
+    <p class="fine">Last updated 17 November 2026</p>
+
+    <p>
+      These terms cover the hosted Mapeleven service at mapeleven.dev: map styles, tiles, fonts, search and
+      accounts. The Mapeleven SDKs and server software are open source under the MIT licence; you can run your own
+      server under that licence instead, and these terms then do not apply to it.
+    </p>
+
+    <h2>Using the service</h2>
+    <ul>
+      <li>The service is free. Each account has a monthly allowance, shown on your <a href="/account/">account page</a>. Requests above it are refused until the next month.</li>
+      <li>Without a key, the service is for development and trying things out, and searches are limited per visitor.</li>
+      <li>Show the map data credit wherever the map appears: "© OpenStreetMap contributors". The SDKs keep it on; do not hide it.</li>
+      <li>Do not bulk-download or copy tiles or search results, resell the service, or try to get around the limits. Keys used that way may be suspended.</li>
+      <li>The service comes as is, with no uptime guarantee. Limits and features may change; we will post notice on this site first. For guaranteed capacity, run your own server.</li>
+    </ul>
+
+    <h2>What we store</h2>
+    <ul>
+      <li><strong>Your account:</strong> your GitHub user ID, user name, display name and profile picture link, from GitHub sign-in. We do not ask GitHub for your email or for access to your repositories.</li>
+      <li><strong>Your keys:</strong> their names, the websites you allow, and when they were created or deleted.</li>
+      <li><strong>Usage:</strong> the number of map loads, searches and tile requests per key per day.</li>
+      <li><strong>One cookie</strong> that keeps you signed in for 30 days. No advertising or tracking cookies, and no analytics scripts.</li>
+    </ul>
+    <p>
+      We do not store your users' locations or search text. Search requests are answered and not logged. IP addresses
+      are held in memory for one minute to apply the per-visitor limit, and are not written to disk.
+    </p>
+    <p>
+      The service runs on servers at Hetzner in Germany. We do not sell or share your data. To delete your account and
+      everything above, write to <a href="mailto:hello@mapeleven.dev">hello@mapeleven.dev</a>.
+    </p>
+
+    <h2>Map data</h2>
+    <p>
+      Map data comes from <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> under the Open Database
+      Licence, with the tile schema from <a href="https://protomaps.com">Protomaps</a>. It is maintained by volunteers
+      and may be incomplete or out of date; do not rely on it where errors could cause harm.
+    </p>
+
+    <h2>Contact</h2>
+    <p>Questions or more capacity: <a href="mailto:hello@mapeleven.dev">hello@mapeleven.dev</a>.</p>
+  </section>
+  <footer class="footer">
+    <span>Mapeleven · MIT licence · <a href="https://github.com/yehyatt/mapeleven">GitHub</a></span>
+    <span>Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a></span>
+  </footer>
+</body>
+</html>

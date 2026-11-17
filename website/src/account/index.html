@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Account · Mapeleven</title>
+  <meta name="description" content="Get a free Mapeleven API key, manage your keys and see your map loads and searches." />
+  <link rel="canonical" href="https://mapeleven.dev/account/" />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="/"><img src="/static/favicon.svg" alt="" width="26" height="26" /> Mapeleven</a>
+    <nav>
+      <a href="/docs/getting-started.html">Docs</a>
+      <a href="/explorer/">Demo</a>
+      <a href="/account/" aria-current="page">Account</a>
+    </nav>
+  </header>
+
+  <!-- Signed out -->
+  <section id="signed-out" class="account-intro" hidden>
+    <p class="eyebrow">Free API key</p>
+    <h1>Get a key, paste it, ship your map.</h1>
+    <p class="lead">
+      Sign in with GitHub and your first key is ready. Use it with the Flutter or web SDK to get your own
+      monthly allowance and usage charts. No card, no billing.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="/auth/github">Sign in with GitHub</a>
+      <a class="btn" href="/docs/getting-started.html">Read the docs first</a>
+    </div>
+    <ul class="allowance" id="allowance"></ul>
+    <p class="fine">
+      We store your GitHub user name, display name and picture, your keys, and daily request counts per key.
+      See the <a href="/terms.html">terms and privacy</a>.
+    </p>
+  </section>
+
+  <!-- Signed in -->
+  <section id="signed-in" class="account" hidden>
+    <div class="account-head">
+      <div class="who">
+        <img id="avatar" alt="" width="44" height="44" />
+        <div>
+          <h1 id="who-name">Account</h1>
+          <p class="fine" id="who-login"></p>
+        </div>
+      </div>
+      <button class="btn" id="sign-out">Sign out</button>
+    </div>
+
+    <h2>This month</h2>
+    <div class="meters" id="meters"></div>
+    <div class="chart-wrap">
+      <p class="fine">Last 30 days</p>
+      <div class="chart" id="chart" role="img" aria-label="Daily map loads and searches"></div>
+      <p class="legend"><span class="sw map"></span>Map loads <span class="sw search"></span>Searches</p>
+    </div>
+
+    <div class="keys-head">
+      <h2>API keys</h2>
+      <button class="btn primary" id="new-key">New key</button>
+    </div>
+    <p class="fine">
+      Keys are public, like Mapbox public tokens: they end up inside your app. To stop other websites from
+      using a key, list your domains on it. Apps on phones are not restricted by domain.
+    </p>
+    <div id="keys"></div>
+
+    <h2>Use your key</h2>
+    <div class="code-head">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="flutter">Flutter</button>
+        <button role="tab" aria-selected="false" data-tab="web">Web</button>
+      </div>
+    </div>
+    <pre class="snippet" data-panel="flutter"><code id="snippet-flutter"></code></pre>
+    <pre class="snippet" data-panel="web" hidden><code id="snippet-web"></code></pre>
+  </section>
+
+  <p id="error" class="error" role="alert" hidden></p>
+
+  <footer class="footer">
+    <span>Mapeleven · MIT licence · <a href="/terms.html">Terms and privacy</a></span>
+    <span>Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a></span>
+  </footer>
+
+  <template id="key-row">
+    <article class="key">
+      <div class="key-top">
+        <input class="key-name" aria-label="Key name" maxlength="60" />
+        <button class="link danger key-delete">Delete</button>
+      </div>
+      <div class="token">
+        <code class="key-token"></code>
+        <button class="btn small key-copy">Copy</button>
+      </div>
+      <label class="fine">Allowed websites (comma-separated, empty means any)
+        <input class="key-origins" placeholder="example.com, *.example.com" />
+      </label>
+      <p class="fine key-meta"></p>
+    </article>
+  </template>
+
+  <script type="module" src="/static/account.js"></script>
+</body>
+</html>

@@ -15,7 +15,7 @@ import "mapeleven/style.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url"; // Vite
 
 const map = new MapelevenMap("map", {
-  provider: hosted(),
+  provider: hosted({ key: "mel_..." }), // free key: mapeleven.dev/account
   language: "ar",            // optional: defaults to the page language
   theme: "light",            // light, dark, white, grayscale, black
   center: [35.9106, 31.9539],
@@ -63,22 +63,22 @@ const here = await map.search.reverse(31.95, 35.91, { language: "ar" });
 console.log(here?.label, here?.adminAreas);
 ```
 
-Use `new MapelevenSearch(hosted())` to search without a map.
+Use `new MapelevenSearch(hosted({ key }))` to search without a map.
 
 ## Without a bundler
 
 The SDK is served from mapeleven.dev, versioned, so a plain HTML page works:
 
 ```html
-<link rel="stylesheet" href="https://mapeleven.dev/sdk/web/0.2.1/mapeleven.css" />
+<link rel="stylesheet" href="https://mapeleven.dev/sdk/web/0.3.0/mapeleven.css" />
 <script type="importmap">
   { "imports": { "maplibre-gl": "https://cdn.jsdelivr.net/npm/maplibre-gl@6.16.0/dist/maplibre-gl.mjs" } }
 </script>
 <div id="map" style="height: 100vh"></div>
 <script type="module">
-  import { MapelevenMap, hosted } from "https://mapeleven.dev/sdk/web/0.2.1/mapeleven.js";
+  import { MapelevenMap, hosted } from "https://mapeleven.dev/sdk/web/0.3.0/mapeleven.js";
   new MapelevenMap("map", {
-    provider: hosted(),
+    provider: hosted({ key: "mel_..." }),
     workerUrl: "https://cdn.jsdelivr.net/npm/maplibre-gl@6.16.0/dist/maplibre-gl-worker.mjs",
   });
 </script>

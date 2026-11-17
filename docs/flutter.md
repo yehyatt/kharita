@@ -11,7 +11,7 @@ Everything here runs on Android, iOS and Flutter web from the same code.
 
 ```dart
 MapelevenMap(
-  provider: MapelevenProvider.hosted(),
+  provider: MapelevenProvider.hosted(key: 'mel_...'), // free key: mapeleven.dev/account
   language: MapelevenLanguage.ar,      // optional: defaults to the app's language
   theme: MapelevenTheme.light,         // light, dark, white, grayscale, black
   initialCenter: const LatLng(31.9539, 35.9106),
