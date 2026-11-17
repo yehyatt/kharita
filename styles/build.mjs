@@ -16,6 +16,29 @@ export const LANGUAGES = ["ar", "en"];
 const ATTRIBUTION =
   '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
 
+// Kinds the default Protomaps style leaves out but people in the region look
+// for. The sprite has no icon for them, so they use the generic dot.
+export const EXTRA_POI_KINDS = [
+  "hospital", "clinic", "doctors", "dentist", "pharmacy", "chemist",
+  "place_of_worship", "fuel", "bank", "atm", "bureau_de_change", "money_transfer",
+  "hotel", "guest_house", "bakery", "pastry", "mall", "department_store",
+  "police", "fire_station", "courthouse", "cinema", "fitness_centre", "sports_centre",
+  "kindergarten", "college", "mobile_phone", "car_wash", "car_rental", "parking",
+  "bus_station", "community_centre", "playground", "greengrocer", "butcher", "ice_cream",
+];
+
+function widenPois(layerList) {
+  for (const layer of layerList) {
+    if (layer.id !== "pois") continue;
+    const kinds = layer.filter?.[1]?.[2]?.[1];
+    if (!Array.isArray(kinds)) throw new Error("pois filter changed upstream; update widenPois()");
+    for (const k of EXTRA_POI_KINDS) if (!kinds.includes(k)) kinds.push(k);
+    const fallback = EXTRA_POI_KINDS.flatMap((k) => [k, "townspot"]);
+    layer.layout["icon-image"] = ["match", ["get", "kind"], "station", "train_station", ...fallback, ["get", "kind"]];
+  }
+  return layerList;
+}
+
 mkdirSync(out, { recursive: true });
 for (const theme of THEMES) {
   for (const lang of LANGUAGES) {
@@ -27,7 +50,7 @@ for (const theme of THEMES) {
       sources: {
         protomaps: { type: "vector", url: `${baseUrl}/tiles/${tiles}.json`, attribution: ATTRIBUTION },
       },
-      layers: layers("protomaps", namedFlavor(theme), { lang }),
+      layers: widenPois(layers("protomaps", namedFlavor(theme), { lang })),
     };
     writeFileSync(`${out}/${theme}-${lang}.json`, JSON.stringify(style));
   }

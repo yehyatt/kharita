@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{title}} · Mapeleven docs</title>
+  <meta name="description" content="Mapeleven documentation: {{title}}." />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/site.css" />
+</head>
+<body class="docs">
+  <header class="topbar">
+    <a class="logo" href="/"><img src="/static/favicon.svg" alt="" width="26" height="26" /> Mapeleven</a>
+    <nav>
+      <a href="/docs/getting-started.html" aria-current="page">Docs</a>
+      <a href="/explorer/">Demo</a>
+      <a href="https://github.com/yehyatt/mapeleven" rel="noopener">GitHub</a>
+    </nav>
+    <button class="menu" aria-label="Menu" onclick="document.body.classList.toggle('nav-open')">☰</button>
+  </header>
+  <div class="docs-layout">
+    <aside class="sidebar">
+      <p class="sidebar-title">Guides</p>
+      {{nav}}
+      <p class="sidebar-title">More</p>
+      <a href="https://github.com/yehyatt/mapeleven/blob/main/docs/ROADMAP.md" rel="noopener">Roadmap and costs</a>
+      <a href="https://github.com/yehyatt/mapeleven/tree/main/apps/explorer" rel="noopener">Explorer source</a>
+    </aside>
+    <main class="doc">
+      {{content}}
+      <p class="edit"><a href="{{source}}" rel="noopener">Edit this page on GitHub</a></p>
+    </main>
+    <nav class="toc" aria-label="On this page">
+      <p class="sidebar-title">On this page</p>
+      {{toc}}
+    </nav>
+  </div>
+  <footer class="footer">
+    <span>Mapeleven · MIT licence</span>
+    <span>Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a></span>
+  </footer>
+</body>
+</html>

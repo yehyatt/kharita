@@ -16,12 +16,30 @@ export interface MapelevenPlace {
   /** [minLng, minLat, maxLng, maxLat] when the place is an area. */
   bbox?: [number, number, number, number];
   osmId?: string;
+  street?: string;
+  houseNumber?: string;
+  postcode?: string;
+  /** Neighbourhood or district (حي / منطقة) when OSM has one. */
+  district?: string;
+  /** Locality inside a city, when OSM has one. */
+  locality?: string;
+  county?: string;
+  /** Governorate, province or emirate. */
+  state?: string;
+  /** Admin names from most to least specific (district, locality, city, county, state), for zone matching. */
+  adminAreas: string[];
+  /** The raw Photon properties. */
+  properties: Record<string, unknown>;
 }
 
 export interface SearchOptions {
   language?: MapelevenLanguage;
-  /** Bias results towards this point (e.g. the map centre). */
+  /** Rank results near this point first (e.g. the map centre). */
   near?: { lat: number; lng: number };
+  /** How local `near` is: 14 (default) is about a city, lower widens it. */
+  nearZoom?: number;
+  /** Category filter, e.g. ["amenity:pharmacy"] or ["shop"]. */
+  osmTags?: string[];
   /** Restrict to [minLng, minLat, maxLng, maxLat]. */
   bbox?: [number, number, number, number];
   limit?: number;
@@ -45,8 +63,10 @@ export class MapelevenSearch {
     if (options.near) {
       params.set("lat", String(options.near.lat));
       params.set("lon", String(options.near.lng));
+      params.set("zoom", String(options.nearZoom ?? 14));
     }
     if (options.bbox) params.set("bbox", options.bbox.join(","));
+    for (const tag of options.osmTags ?? []) params.append("osm_tag", tag);
     return this.fetchPlaces("api", params, options);
   }
 
@@ -72,7 +92,7 @@ export class MapelevenSearch {
     const res = await fetch(`${this.provider.searchUrl}/${path}?${params}`, { signal: options.signal });
     if (!res.ok) throw new Error(`Search failed: HTTP ${res.status}`);
     const body = (await res.json()) as PhotonResponse;
-    const separator = options.language === "ar" ? "، " : ", ";
+    const separator = options.language === "en" ? ", " : "، ";
     return body.features.map((f) => toPlace(f, separator));
   }
 }
@@ -107,5 +127,14 @@ function toPlace(f: PhotonResponse["features"][number], separator: string): Mape
     // Photon extent is [minLon, maxLat, maxLon, minLat].
     bbox: extent ? [extent[0], extent[3], extent[2], extent[1]] : undefined,
     osmId: p.osm_type && p.osm_id ? `${p.osm_type}${p.osm_id}` : undefined,
+    street: p.street,
+    houseNumber: p.housenumber,
+    postcode: p.postcode,
+    district: p.district,
+    locality: p.locality,
+    county: p.county,
+    state: p.state,
+    adminAreas: [...new Set([p.district, p.locality, p.city, p.county, p.state].filter((x): x is string => Boolean(x)))],
+    properties: f.properties,
   };
 }

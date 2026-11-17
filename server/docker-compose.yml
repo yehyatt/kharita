@@ -7,10 +7,12 @@ services:
     ports: ["80:80", "443:443"]
     environment:
       DOMAIN: ${DOMAIN}
+      REDIRECT_DOMAINS: ${REDIRECT_DOMAINS:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./data/styles:/srv/styles:ro
       - ./data/assets:/srv/assets:ro
+      - ./data/site:/srv/site:ro
       - caddy_data:/data
     depends_on: [tiles]
 

@@ -1,0 +1,12 @@
+{
+  "name": "mapeleven-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "serve": "node build.mjs && python3 -m http.server 8090 --directory dist"
+  },
+  "devDependencies": {
+    "marked": "16.4.1"
+  }
+}

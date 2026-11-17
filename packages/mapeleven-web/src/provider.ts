@@ -56,4 +56,9 @@ export function openFreeMap(options: { searchUrl?: string } = {}): MapelevenProv
   };
 }
 
-export const providers = { selfHosted, openFreeMap };
+/** The public Mapeleven server at mapeleven.dev: Jordan and the GCC, Arabic and English search. Fair use. */
+export function hosted(baseUrl = "https://mapeleven.dev"): MapelevenProvider {
+  return { ...selfHosted(baseUrl), id: "hosted" };
+}
+
+export const providers = { selfHosted, openFreeMap, hosted };

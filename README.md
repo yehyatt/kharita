@@ -1,5 +1,7 @@
 # Mapeleven
 
+**Website and docs: [mapeleven.dev](https://mapeleven.dev) · Demo app: [mapeleven.dev/explorer](https://mapeleven.dev/explorer/)**
+
 Open maps made simple for **Flutter** and the **web**. Mapeleven wraps
 [MapLibre](https://maplibre.org) and [OpenStreetMap](https://www.openstreetmap.org) data
 in one small API with Arabic-first styles, place search, and a self-hostable server
@@ -15,6 +17,8 @@ that runs on a single Hetzner box.
 | `mapeleven` (pub.dev) | Android, iOS, Flutter web | `packages/mapeleven_flutter` |
 | `mapeleven` (npm) | Any web app | `packages/mapeleven-web` |
 | Map server | Docker on any VPS | `server/` |
+| Explorer demo app | Android, iOS, web | `apps/explorer` |
+| Website and docs | Static site | `website/`, `docs/` |
 
 ## Quick start: web
 
@@ -46,7 +50,8 @@ With Vite, also add `optimizeDeps: { exclude: ["maplibre-gl"] }` to `vite.config
 
 ```yaml
 dependencies:
-  mapeleven: ^0.1.0
+  mapeleven:
+    git: { url: https://github.com/yehyatt/mapeleven, path: packages/mapeleven_flutter, ref: v0.2.0 }
 ```
 
 ```dart
@@ -71,6 +76,7 @@ To show the user's location, request location permission in your app and pass `s
 
 | Provider | Tiles | Search | Use for |
 |---|---|---|---|
+| `hosted()` | mapeleven.dev: Jordan and the GCC | About a million places, Arabic and English | Apps in the region, demos, pilots |
 | `openFreeMap()` | [OpenFreeMap](https://openfreemap.org) public tiles | [Photon](https://photon.komoot.io) public demo | Development, prototypes, small apps |
 | `selfHosted(url)` | Your server (Protomaps extract) | Your Photon index | Production |
 
@@ -84,7 +90,12 @@ cd examples/flutter && flutter run                            # phone, emulator 
 flutter run --dart-define=MAPELEVEN_SERVER=https://maps.example.com   # against your server
 ```
 
-## What is in v0.1
+## Guides
+
+[Getting started](docs/getting-started.md) · [Flutter](docs/flutter.md) · [Web](docs/web.md) ·
+[Delivery recipes](docs/delivery.md) · [Coming from Google Maps](docs/google-maps.md) · [Self-hosting](docs/self-hosting.md)
+
+## What is in v0.2
 
 | Feature | Web | Flutter |
 |---|---|---|
@@ -92,6 +103,10 @@ flutter run --dart-define=MAPELEVEN_SERVER=https://maps.example.com   # against 
 | Arabic / English labels, runtime switch | ✅ | ✅ |
 | Light / dark themes (5 on self-hosted) | ✅ | ✅ |
 | Markers with labels or popups | ✅ | ✅ |
+| Custom marker icons, rotation, live moving markers | | ✅ |
+| Centre-pin picker (`onCameraIdle`), `fitPoints` | map events | ✅ |
+| Tap and list basemap places (pharmacies, mosques, fuel...) | | ✅ |
+| Search filters (category, box), admin areas for zone matching | ✅ | ✅ |
 | GeoJSON points, lines, polygons, clustering, tap handlers | ✅ | ✅ |
 | User location | ✅ | ✅ (app requests permission) |
 | Place search, reverse geocoding | ✅ | ✅ |

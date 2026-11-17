@@ -17,6 +17,7 @@ class MapelevenProvider {
     this.searchLanguages = const [],
     this.fontStack = const ['Noto Sans Regular'],
     this.rtlPluginUrl = publicRtlPluginUrl,
+    this.poiSource,
   });
 
   /// Public copy of the plugin that shapes Arabic text on Flutter web.
@@ -32,8 +33,13 @@ class MapelevenProvider {
       searchUrl: '$base/search',
       searchLanguages: const ['ar', 'en'],
       rtlPluginUrl: '$base/assets/rtl/mapbox-gl-rtl-text.js',
+      poiSource: ('protomaps', 'pois'),
     );
   }
+
+  /// The public Mapeleven server at mapeleven.dev: Jordan and the GCC with
+  /// Arabic and English search. Fair use; self-host for heavy traffic.
+  factory MapelevenProvider.hosted({String baseUrl = 'https://mapeleven.dev'}) => MapelevenProvider.selfHosted(baseUrl);
 
   /// OpenFreeMap public tiles (free, no key) and the public Photon demo for
   /// search. Good for development and small apps; both are community services
@@ -49,6 +55,7 @@ class MapelevenProvider {
       localizeOnClient: true,
       searchUrl: searchUrl,
       searchLanguages: const ['en', 'de', 'fr'],
+      poiSource: ('openmaptiles', 'poi'),
     );
   }
 
@@ -71,6 +78,10 @@ class MapelevenProvider {
 
   /// Script that shapes Arabic labels in MapLibre GL JS (Flutter web only).
   final String rtlPluginUrl;
+
+  /// Vector source and source-layer that hold points of interest, for
+  /// [MapelevenController.nearbyPois]. Null when unknown.
+  final (String, String)? poiSource;
 
   String styleUrl(MapelevenTheme theme, MapelevenLanguage language) => styleUrlBuilder(theme, language);
 }

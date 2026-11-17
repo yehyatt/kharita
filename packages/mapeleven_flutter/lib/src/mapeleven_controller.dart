@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui' show Color;
+import 'dart:ui' show Color, Rect;
 
 import 'package:maplibre_gl/maplibre_gl.dart';
 
+import 'icons.dart';
 import 'provider.dart';
 import 'search.dart';
 
@@ -13,7 +14,15 @@ const _defaultColor = Color(0xFF0066FF);
 
 /// Options for a GeoJSON layer drawn by [MapelevenController.addGeoJson].
 class MapelevenGeoJsonOptions {
-  const MapelevenGeoJsonOptions({this.cluster = false, this.color = _defaultColor, this.radius = 6, this.onTap});
+  const MapelevenGeoJsonOptions({
+    this.cluster = false,
+    this.color = _defaultColor,
+    this.radius = 6,
+    this.lineWidth = 2,
+    this.fillOpacity = 0.2,
+    this.dashed = false,
+    this.onTap,
+  });
 
   /// Group nearby points into numbered bubbles; tapping one zooms in.
   final bool cluster;
@@ -21,6 +30,13 @@ class MapelevenGeoJsonOptions {
 
   /// Point radius in logical pixels.
   final double radius;
+  final double lineWidth;
+
+  /// Opacity of polygon fills (0 hides the fill, the outline stays).
+  final double fillOpacity;
+
+  /// Draw lines and outlines dashed, for planned routes or soft boundaries.
+  final bool dashed;
 
   /// Called with the tapped feature's properties (not for clusters).
   final void Function(Map<String, dynamic> properties, LatLng position)? onTap;
@@ -28,20 +44,66 @@ class MapelevenGeoJsonOptions {
 
 /// A marker added with [MapelevenController.addMarker].
 class MapelevenMarker {
-  const MapelevenMarker({required this.id, required this.position, this.label, this.color = _defaultColor});
+  const MapelevenMarker({
+    required this.id,
+    required this.position,
+    this.label,
+    this.color = _defaultColor,
+    this.icon,
+    this.rotation = 0,
+    this.anchor = MapelevenAnchor.center,
+    this.data,
+  });
 
   final String id;
   final LatLng position;
 
-  /// Text drawn under the pin.
+  /// Text drawn under the marker.
   final String? label;
+
+  /// Dot colour when no [icon] is set.
   final Color color;
+
+  /// Name of an icon registered with [MapelevenController.registerIcon].
+  final String? icon;
+
+  /// Clockwise rotation in degrees, relative to north (vehicle heading).
+  final double rotation;
+  final MapelevenAnchor anchor;
+
+  /// Anything you want back when the marker is tapped.
+  final Object? data;
+
+  MapelevenMarker copyWith({LatLng? position, double? rotation, String? label}) => MapelevenMarker(
+    id: id,
+    position: position ?? this.position,
+    label: label ?? this.label,
+    color: color,
+    icon: icon,
+    rotation: rotation ?? this.rotation,
+    anchor: anchor,
+    data: data,
+  );
+}
+
+/// A point of interest drawn by the basemap (shop, café, mosque, park...).
+class MapelevenPoi {
+  const MapelevenPoi({required this.name, required this.position, this.kind, this.properties = const {}});
+
+  /// Name in the map's language when the data has one.
+  final String name;
+  final LatLng position;
+
+  /// Category such as `cafe`, `pharmacy`, `school` (OSM-derived).
+  final String? kind;
+  final Map<String, dynamic> properties;
 }
 
 /// Handle to the map once it is ready. Survives theme and language switches:
-/// markers and GeoJSON layers are re-added after every style change.
+/// icons, markers and GeoJSON layers are re-added after every style change.
 class MapelevenController {
-  MapelevenController.internal(this.raw, this.provider) : search = MapelevenSearch(provider) {
+  MapelevenController.internal(this.raw, this.provider, {this.language = MapelevenLanguage.ar})
+    : search = MapelevenSearch(provider) {
     raw.onFeatureTapped.add(_onFeatureTapped);
   }
 
@@ -50,18 +112,38 @@ class MapelevenController {
   final MapelevenProvider provider;
   final MapelevenSearch search;
 
+  /// Current label language; kept in sync by [MapelevenMap].
+  MapelevenLanguage language;
+
+  final Map<String, MapelevenIcon> _icons = {};
   final Map<String, MapelevenMarker> _markers = {};
   final Map<String, (Map<String, dynamic>, MapelevenGeoJsonOptions)> _layers = {};
   final _markerTaps = StreamController<MapelevenMarker>.broadcast();
   bool _styleReady = false;
   int _markerSeq = 0;
+  List<String> _poiLayers = const [];
 
   /// Emits when the user taps a marker.
   Stream<MapelevenMarker> get markerTaps => _markerTaps.stream;
 
+  /// Markers currently on the map, by id.
+  Map<String, MapelevenMarker> get markers => Map.unmodifiable(_markers);
+
+  // ── Camera ────────────────────────────────────────────────────────────────
+
+  /// Centre of the map right now.
+  LatLng? get center => raw.cameraPosition?.target;
+  double? get zoom => raw.cameraPosition?.zoom;
+
+  /// Animates to [target]; keeps the zoom unless it is below 14.
   Future<void> flyTo(LatLng target, {double? zoom}) async {
     final z = zoom ?? max(raw.cameraPosition?.zoom ?? 14, 14);
     await raw.animateCamera(CameraUpdate.newLatLngZoom(target, z));
+  }
+
+  /// Jumps to [target] without animation.
+  Future<void> moveTo(LatLng target, {double? zoom}) async {
+    await raw.moveCamera(zoom == null ? CameraUpdate.newLatLng(target) : CameraUpdate.newLatLngZoom(target, zoom));
   }
 
   Future<void> fitBounds(LatLngBounds bounds, {double padding = 40}) async {
@@ -70,12 +152,62 @@ class MapelevenController {
     );
   }
 
-  /// Adds a pin; returns its id (pass your own [id] to update it later).
-  Future<String> addMarker(LatLng position, {String? id, String? label, Color color = _defaultColor}) async {
+  /// Fits all [points] on screen (for example a driver and a delivery address).
+  Future<void> fitPoints(List<LatLng> points, {double padding = 64, double maxZoom = 16}) async {
+    if (points.isEmpty) return;
+    if (points.length == 1) return flyTo(points.first, zoom: maxZoom);
+    final lats = points.map((p) => p.latitude);
+    final lngs = points.map((p) => p.longitude);
+    await fitBounds(
+      LatLngBounds(
+        southwest: LatLng(lats.reduce(min), lngs.reduce(min)),
+        northeast: LatLng(lats.reduce(max), lngs.reduce(max)),
+      ),
+      padding: padding,
+    );
+    if ((raw.cameraPosition?.zoom ?? 0) > maxZoom) await raw.animateCamera(CameraUpdate.zoomTo(maxZoom));
+  }
+
+  // ── Icons and markers ─────────────────────────────────────────────────────
+
+  /// Makes [icon] available to markers by its name.
+  Future<void> registerIcon(MapelevenIcon icon) async {
+    _icons[icon.name] = icon;
+    if (_styleReady) await raw.addImage('$_prefix${icon.name}', icon.png, false, icon.pixelRatio);
+  }
+
+  /// Adds a marker, or updates it if [id] already exists; returns its id.
+  Future<String> addMarker(
+    LatLng position, {
+    String? id,
+    String? label,
+    Color color = _defaultColor,
+    String? icon,
+    double rotation = 0,
+    MapelevenAnchor anchor = MapelevenAnchor.center,
+    Object? data,
+  }) async {
     final markerId = id ?? 'm${_markerSeq++}';
-    _markers[markerId] = MapelevenMarker(id: markerId, position: position, label: label, color: color);
+    _markers[markerId] = MapelevenMarker(
+      id: markerId,
+      position: position,
+      label: label,
+      color: color,
+      icon: icon,
+      rotation: rotation,
+      anchor: anchor,
+      data: data,
+    );
     await _syncMarkers();
     return markerId;
+  }
+
+  /// Moves an existing marker (live vehicles). Pass [rotation] to turn it.
+  Future<void> moveMarker(String id, LatLng position, {double? rotation}) async {
+    final m = _markers[id];
+    if (m == null) return;
+    _markers[id] = m.copyWith(position: position, rotation: rotation);
+    await _syncMarkers();
   }
 
   Future<void> removeMarker(String id) async {
@@ -86,6 +218,8 @@ class MapelevenController {
     _markers.clear();
     await _syncMarkers();
   }
+
+  // ── GeoJSON layers ────────────────────────────────────────────────────────
 
   /// Draws points, lines and polygons from a GeoJSON map, optionally clustered.
   Future<void> addGeoJson(
@@ -114,9 +248,91 @@ class MapelevenController {
     await raw.removeSource(id).catchError((_) {});
   }
 
+  // ── Basemap places ────────────────────────────────────────────────────────
+
+  /// The basemap point of interest under a screen [point] (from a tap), if any.
+  Future<MapelevenPoi?> poiAt(Point<double> point) async {
+    if (!_styleReady || _poiLayers.isEmpty) return null;
+    final features = await raw.queryRenderedFeatures(point, _poiLayers, null);
+    for (final f in features) {
+      final poi = _toPoi(f);
+      if (poi != null) return poi;
+    }
+    return null;
+  }
+
+  /// Named points of interest drawn in the visible area, nearest the centre first.
+  Future<List<MapelevenPoi>> visiblePois({String? kind, int limit = 50}) async {
+    if (!_styleReady || _poiLayers.isEmpty) return const [];
+    final features = await raw.queryRenderedFeaturesInRect(const Rect.fromLTRB(0, 0, 100000, 100000), _poiLayers, null);
+    final seen = <String>{};
+    final pois = <MapelevenPoi>[];
+    for (final f in features) {
+      final poi = _toPoi(f);
+      if (poi == null || (kind != null && poi.kind != kind)) continue;
+      if (seen.add('${poi.name}|${poi.position.latitude.toStringAsFixed(5)}')) pois.add(poi);
+    }
+    final c = center;
+    if (c != null) pois.sort((a, b) => _dist2(a.position, c).compareTo(_dist2(b.position, c)));
+    return pois.take(limit).toList();
+  }
+
+  /// Every point of interest in the visible area, including ones whose labels
+  /// the map hid to avoid overlap, nearest the centre first. Reads the loaded
+  /// tiles, so it is instant and works offline. [kinds] filters by category
+  /// (`{'pharmacy', 'chemist'}`); see [MapelevenPoi.kind].
+  Future<List<MapelevenPoi>> nearbyPois({Set<String>? kinds, int limit = 100}) async {
+    final source = provider.poiSource;
+    if (!_styleReady || source == null) return visiblePois(limit: limit);
+    final bounds = await raw.getVisibleRegion();
+    final features = await raw.querySourceFeatures(source.$1, source.$2, null);
+    final seen = <String>{};
+    final pois = <MapelevenPoi>[];
+    for (final f in features) {
+      final poi = _toPoi(f);
+      if (poi == null || (kinds != null && !kinds.contains(poi.kind))) continue;
+      final p = poi.position;
+      if (p.latitude < bounds.southwest.latitude ||
+          p.latitude > bounds.northeast.latitude ||
+          p.longitude < bounds.southwest.longitude ||
+          p.longitude > bounds.northeast.longitude) {
+        continue;
+      }
+      // The same place repeats in every tile that buffers it.
+      if (seen.add('${poi.name}|${p.latitude.toStringAsFixed(4)}|${p.longitude.toStringAsFixed(4)}')) pois.add(poi);
+    }
+    final c = center;
+    if (c != null) pois.sort((a, b) => _dist2(a.position, c).compareTo(_dist2(b.position, c)));
+    return pois.take(limit).toList();
+  }
+
+  MapelevenPoi? _toPoi(Object? feature) {
+    if (feature is! Map) return null;
+    final props = Map<String, dynamic>.from((feature['properties'] as Map?) ?? const {});
+    final geometry = feature['geometry'] as Map?;
+    if (geometry == null || geometry['type'] != 'Point') return null;
+    final name = props['name:${language.name}'] ?? props['name'];
+    if (name == null || '$name'.isEmpty) return null;
+    final coords = geometry['coordinates'] as List;
+    return MapelevenPoi(
+      name: '$name',
+      position: LatLng((coords[1] as num).toDouble(), (coords[0] as num).toDouble()),
+      // Protomaps tiles call it `kind`, OpenMapTiles `subclass`/`class`.
+      kind: (props['kind'] ?? props['subclass'] ?? props['class'])?.toString(),
+      properties: props,
+    );
+  }
+
+  // ── Lifecycle (called by MapelevenMap) ────────────────────────────────────
+
   /// Called by [MapelevenMap] after each style load.
   Future<void> onStyleLoaded() async {
     _styleReady = true;
+    final ids = (await raw.getLayerIds()).map((e) => '$e');
+    _poiLayers = ids.where((id) => id == 'pois' || id.startsWith('poi')).toList();
+    for (final icon in _icons.values) {
+      await raw.addImage('$_prefix${icon.name}', icon.png, false, icon.pixelRatio);
+    }
     for (final MapEntry(key: name, value: (data, options)) in _layers.entries) {
       await _installLayer(name, data, options);
     }
@@ -142,7 +358,7 @@ class MapelevenController {
     await raw.addFillLayer(
       id,
       '$id-fill',
-      FillLayerProperties(fillColor: color, fillOpacity: 0.2),
+      FillLayerProperties(fillColor: color, fillOpacity: o.fillOpacity),
       filter: [
         '==',
         ['geometry-type'],
@@ -152,7 +368,13 @@ class MapelevenController {
     await raw.addLineLayer(
       id,
       '$id-line',
-      LineLayerProperties(lineColor: color, lineWidth: 2),
+      LineLayerProperties(
+        lineColor: color,
+        lineWidth: o.lineWidth,
+        lineCap: 'round',
+        lineJoin: 'round',
+        lineDasharray: o.dashed ? const [2, 2] : null,
+      ),
       filter: [
         'in',
         ['geometry-type'],
@@ -167,7 +389,11 @@ class MapelevenController {
       id,
       '$id-point',
       CircleLayerProperties(
-        circleColor: color,
+        circleColor: [
+          'coalesce',
+          ['get', 'color'],
+          color,
+        ],
         circleRadius: o.radius,
         circleStrokeColor: '#ffffff',
         circleStrokeWidth: 2,
@@ -229,7 +455,14 @@ class MapelevenController {
         {
           'type': 'Feature',
           'id': m.id,
-          'properties': {'mapelevenId': m.id, 'label': m.label ?? '', 'color': _hex(m.color)},
+          'properties': {
+            'mapelevenId': m.id,
+            'label': m.label ?? '',
+            'color': _hex(m.color),
+            'icon': m.icon == null ? '' : '$_prefix${m.icon}',
+            'rotation': m.rotation,
+            'anchor': m.anchor.name,
+          },
           'geometry': {
             'type': 'Point',
             'coordinates': [m.position.longitude, m.position.latitude],
@@ -249,6 +482,28 @@ class MapelevenController {
         circleStrokeColor: '#ffffff',
         circleStrokeWidth: 3,
       ),
+      filter: [
+        '==',
+        ['get', 'icon'],
+        '',
+      ],
+    );
+    await raw.addSymbolLayer(
+      _markersSource,
+      '$_markersSource-icon',
+      const SymbolLayerProperties(
+        iconImage: ['get', 'icon'],
+        iconRotate: ['get', 'rotation'],
+        iconAnchor: ['get', 'anchor'],
+        iconRotationAlignment: 'map',
+        iconAllowOverlap: true,
+        iconIgnorePlacement: true,
+      ),
+      filter: [
+        '!=',
+        ['get', 'icon'],
+        '',
+      ],
     );
     await raw.addSymbolLayer(
       _markersSource,
@@ -257,7 +512,7 @@ class MapelevenController {
         textField: ['get', 'label'],
         textFont: provider.fontStack,
         textSize: 13,
-        textOffset: const [0, 1.4],
+        textOffset: const [0, 1.6],
         textAnchor: 'top',
         textColor: '#0A1628',
         textHaloColor: '#ffffff',
@@ -272,7 +527,7 @@ class MapelevenController {
   }
 
   Future<void> _onFeatureTapped(Point<double> point, LatLng latLng, String id, String layerId, Annotation? _) async {
-    if (layerId == '$_markersSource-pin') {
+    if (layerId == '$_markersSource-pin' || layerId == '$_markersSource-icon') {
       final marker = _markers[id];
       if (marker != null) _markerTaps.add(marker);
       return;
@@ -292,5 +547,7 @@ class MapelevenController {
     }
   }
 }
+
+double _dist2(LatLng a, LatLng b) => pow(a.latitude - b.latitude, 2) + pow(a.longitude - b.longitude, 2).toDouble();
 
 String _hex(Color c) => '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';

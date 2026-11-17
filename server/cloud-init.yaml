@@ -1,0 +1,16 @@
+#cloud-config
+# Prepares a fresh Ubuntu 24.04 Hetzner server for the Mapeleven stack.
+package_update: true
+package_upgrade: true
+packages: [ca-certificates, curl, git, zstd, python3, ufw, unattended-upgrades]
+runcmd:
+  - curl -fsSL https://get.docker.com | sh
+  - systemctl enable --now docker
+  - ufw default deny incoming
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw allow 443/udp
+  - ufw --force enable
+  - git clone https://github.com/yehyatt/mapeleven /opt/mapeleven
+  - touch /var/lib/cloud/instance/mapeleven-ready

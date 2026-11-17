@@ -24,6 +24,9 @@ class MapelevenMap extends StatefulWidget {
     this.onMapReady,
     this.onTap,
     this.onLongPress,
+    this.onPoiTap,
+    this.onCameraIdle,
+    this.compassEnabled = true,
   });
 
   /// Defaults to [MapelevenProvider.openFreeMap] (development use).
@@ -41,6 +44,17 @@ class MapelevenMap extends StatefulWidget {
   final void Function(MapelevenController controller)? onMapReady;
   final void Function(LatLng position)? onTap;
   final void Function(LatLng position)? onLongPress;
+
+  /// Called when the user taps a shop, café, mosque or other basemap place.
+  /// Taps that miss a place still go to [onTap].
+  final void Function(MapelevenPoi poi)? onPoiTap;
+
+  /// Called when the camera stops moving, with the map centre and zoom. Use it
+  /// for a fixed-centre pin picker: reverse geocode [center] here.
+  final void Function(LatLng center, double zoom)? onCameraIdle;
+
+  /// Shows the compass after the user rotates the map.
+  final bool compassEnabled;
 
   @override
   State<MapelevenMap> createState() => _MapelevenMapState();
@@ -65,6 +79,7 @@ class _MapelevenMapState extends State<MapelevenMap> {
   @override
   void didUpdateWidget(MapelevenMap old) {
     super.didUpdateWidget(old);
+    _controller?.language = widget.language;
     if (old.language != widget.language || old.theme != widget.theme) {
       _controller?.onStyleChanging();
       _resolveStyle();
@@ -124,7 +139,7 @@ class _MapelevenMapState extends State<MapelevenMap> {
       initialCameraPosition: CameraPosition(target: widget.initialCenter, zoom: widget.initialZoom),
       onMapCreated: (raw) {
         ensureRtlPlugin(_provider.rtlPluginUrl);
-        _controller = MapelevenController.internal(raw, _provider);
+        _controller = MapelevenController.internal(raw, _provider, language: widget.language);
       },
       onStyleLoadedCallback: () async {
         final controller = _controller;
@@ -136,7 +151,19 @@ class _MapelevenMapState extends State<MapelevenMap> {
         }
       },
       myLocationEnabled: widget.showUserLocation,
-      onMapClick: (_, latLng) => widget.onTap?.call(latLng),
+      onMapClick: (point, latLng) async {
+        final poi = widget.onPoiTap == null ? null : await _controller?.poiAt(point);
+        if (poi != null) {
+          widget.onPoiTap!(poi);
+        } else {
+          widget.onTap?.call(latLng);
+        }
+      },
+      onCameraIdle: () {
+        final camera = _controller?.raw.cameraPosition;
+        if (camera != null) widget.onCameraIdle?.call(camera.target, camera.zoom);
+      },
+      compassEnabled: widget.compassEnabled,
       onMapLongClick: (_, latLng) => widget.onLongPress?.call(latLng),
       // OSM's licence (ODbL) requires visible attribution; Mapeleven keeps the button on.
       attributionButtonPosition: rtl ? AttributionButtonPosition.bottomLeft : AttributionButtonPosition.bottomRight,

@@ -1,6 +1,11 @@
 # Roadmap and cost model
 
-## v0.2: offline and routing
+## v0.2 (done)
+
+Hosted server at mapeleven.dev, marker icons and live vehicle markers, centre-pin picker support,
+basemap places (tap and nearby), richer search with admin areas, the Explorer demo app, the website and docs.
+
+## v0.3: routing and offline
 
 - Offline regions: download a bounding box for use without a connection (MapLibre offline packs on Flutter, PMTiles file on web).
 - Routing with [Valhalla](https://github.com/valhalla/valhalla) on the server: car, walking, cycling; route line drawing in the SDK.

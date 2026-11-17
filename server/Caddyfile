@@ -31,7 +31,24 @@
 		reverse_proxy search:2322
 	}
 
+	# Website, docs and the Explorer demo (website/deploy.sh uploads them to data/site).
 	handle {
-		respond "Mapeleven map server" 200
+		root * /srv/site
+		try_files {path} {path}/index.html {path}.html
+		file_server
+		@html path *.html */
+		header @html Cache-Control "public, max-age=300"
+		header /static/* Cache-Control "public, max-age=86400"
 	}
+
+	handle_errors 404 {
+		root * /srv/site
+		rewrite * /404.html
+		file_server
+	}
+}
+
+# www and any extra domains (REDIRECT_DOMAINS, space-separated) redirect to the main domain.
+www.{$DOMAIN} {$REDIRECT_DOMAINS} {
+	redir https://{$DOMAIN}{uri} permanent
 }
