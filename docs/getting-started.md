@@ -37,10 +37,10 @@ dependencies:
     git:
       url: https://github.com/yehyatt/mapeleven
       path: packages/mapeleven_flutter
-      ref: v0.3.0
+      ref: v0.3.1
 ```
 
-The pub.dev release (`mapeleven: ^0.3.0`) follows; the API is the same.
+The pub.dev release (`mapeleven: ^0.3.1`) follows; the API is the same.
 
 ### 2. Platform setup
 

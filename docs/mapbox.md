@@ -8,7 +8,7 @@ description: Move a Flutter or web app from Mapbox to Mapeleven, an open-source 
 
 Mapeleven runs on [MapLibre](https://maplibre.org), the open-source continuation of Mapbox GL. When Mapbox moved Mapbox GL JS v2 to a proprietary licence in December 2020, the community forked the last open release (v1.13) as MapLibre GL JS. So on the web most of your map code carries over, and in Flutter the concepts are the same.
 
-What you gain: a free key in a minute with no card, no per-map-load or per-user billing, OpenStreetMap data you can host yourself, and labels in Arabic or English with correct right-to-left shaping. What you give up today: Mapbox's own styles (`mapbox://` URLs and Mapbox Standard), Mapbox satellite imagery, live traffic, and the Directions API (road routing is on the [roadmap](https://github.com/yehyatt/mapeleven/blob/main/docs/ROADMAP.md)).
+What you gain: a free key in a minute with no card, no per-map-load or per-user billing, OpenStreetMap data you can host yourself, and labels in Arabic or English with correct right-to-left shaping. What you give up today: Mapbox's own styles (`mapbox://` URLs and Mapbox Standard), Mapbox satellite imagery (Mapeleven shows Esri or MapTiler imagery with your own key, see [Satellite imagery](satellite.md)), live traffic, and the Directions API (road routing is on the [roadmap](https://github.com/yehyatt/mapeleven/blob/main/docs/ROADMAP.md)).
 
 ## Web: Mapbox GL JS
 

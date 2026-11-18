@@ -52,7 +52,7 @@ With Vite, also add `optimizeDeps: { exclude: ["maplibre-gl"] }` to `vite.config
 ```yaml
 dependencies:
   mapeleven:
-    git: { url: https://github.com/yehyatt/mapeleven, path: packages/mapeleven_flutter, ref: v0.3.0 }
+    git: { url: https://github.com/yehyatt/mapeleven, path: packages/mapeleven_flutter, ref: v0.3.1 }
 ```
 
 ```dart

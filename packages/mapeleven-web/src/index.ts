@@ -6,4 +6,6 @@ export { MapelevenSearch } from "./search";
 export type { MapelevenPlace, SearchOptions } from "./search";
 export { hosted, openFreeMap, providers, selfHosted } from "./provider";
 export type { MapelevenLanguage, MapelevenProvider, MapelevenTheme } from "./provider";
+export { customImagery, esriImagery, hybridStyle, mapTilerImagery } from "./imagery";
+export type { MapelevenImagery } from "./imagery";
 export { localizeStyle, nameExpression } from "./localize";

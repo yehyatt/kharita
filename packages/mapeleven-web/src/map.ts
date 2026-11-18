@@ -6,6 +6,7 @@ import type {
   MapOptions,
   StyleSpecification,
 } from "maplibre-gl";
+import { hybridStyle, type MapelevenImagery } from "./imagery";
 import { localizeStyle } from "./localize";
 import { openFreeMap, type MapelevenLanguage, type MapelevenProvider, type MapelevenTheme } from "./provider";
 import { ensureRtlPlugin } from "./rtl";
@@ -17,6 +18,11 @@ export interface MapelevenMapOptions {
   /** Label language. Defaults to the page language (`<html lang>`, else the browser): Arabic for Arabic, English otherwise. */
   language?: MapelevenLanguage;
   theme?: MapelevenTheme;
+  /**
+   * Satellite imagery under the roads and labels, from a provider you hold a key for, e.g.
+   * `esriImagery("...")`. Leave it out for the vector map in `theme`.
+   */
+  imagery?: MapelevenImagery;
   /** [lng, lat]. Defaults to Amman. */
   center?: [number, number];
   zoom?: number;
@@ -68,6 +74,7 @@ export class MapelevenMap {
 
   private _language: MapelevenLanguage;
   private _theme: MapelevenTheme;
+  private _imagery?: MapelevenImagery;
   private geolocate?: maplibregl.GeolocateControl;
   private styleRequest = 0;
   private styleReady = false;
@@ -76,6 +83,7 @@ export class MapelevenMap {
     this.provider = options.provider ?? openFreeMap();
     this._language = options.language ?? pageLanguage();
     this._theme = options.theme ?? "light";
+    this._imagery = options.imagery;
     if (options.workerUrl) maplibregl.setWorkerUrl(options.workerUrl);
     ensureRtlPlugin(this.provider.rtlPluginUrl);
 
@@ -125,6 +133,16 @@ export class MapelevenMap {
   /** Switch visual theme. Your markers and GeoJSON layers are kept. */
   setTheme(theme: MapelevenTheme): Promise<void> {
     this._theme = theme;
+    return this.applyStyle();
+  }
+
+  get imagery(): MapelevenImagery | undefined {
+    return this._imagery;
+  }
+
+  /** Show satellite imagery under roads and labels, or pass `undefined` for the vector map. Your markers and GeoJSON layers are kept. */
+  setImagery(imagery: MapelevenImagery | undefined): Promise<void> {
+    this._imagery = imagery;
     return this.applyStyle();
   }
 
@@ -244,7 +262,9 @@ export class MapelevenMap {
 
   private async applyStyle(): Promise<void> {
     const request = ++this.styleRequest;
-    const url = this.provider.styleUrl(this._theme, this._language);
+    const imagery = this._imagery;
+    // Hybrid maps take roads and labels from the dark theme: light text on a dark halo reads best over imagery.
+    const url = this.provider.styleUrl(imagery ? "dark" : this._theme, this._language);
     let style: StyleSpecification | string = url;
     if (this.provider.localizeOnClient) {
       const res = await fetch(url);
@@ -256,14 +276,17 @@ export class MapelevenMap {
     this.map.setStyle(style, {
       diff: false,
       // Carry Mapeleven-owned sources and layers (markers are DOM elements and survive anyway).
-      transformStyle: (previous: StyleSpecification | undefined, next: StyleSpecification): StyleSpecification => ({
+      transformStyle: (previous: StyleSpecification | undefined, loaded: StyleSpecification): StyleSpecification => {
+          const next = imagery ? hybridStyle(loaded, imagery) : loaded;
+          return {
             ...next,
             sources: {
               ...next.sources,
               ...Object.fromEntries(Object.entries(previous?.sources ?? {}).filter(([k]) => k.startsWith(PREFIX))),
             },
             layers: [...next.layers, ...(previous?.layers ?? []).filter((l: { id: string }) => l.id.startsWith(PREFIX))],
-          }),
+          };
+        },
     });
     await loaded;
   }

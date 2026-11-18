@@ -41,7 +41,7 @@ Requests without a key keep working, with searches limited per IP.
 | Search and reverse geocoding | Photon | Server RAM |
 | Routing, isochrones, navigation | Valhalla, Ferrostar | Server RAM and CPU |
 | Live traffic | None open | Paid data (TomTom, HERE) |
-| High-resolution satellite imagery | None open (Sentinel-2 is 10 m) | Paid imagery |
+| High-resolution satellite imagery | None open (Sentinel-2 is 10 m); the SDK shows Esri, MapTiler or your own imagery (v0.3.1) | Paid imagery, on your own key |
 | Rich business data (ratings, photos, hours) | OSM and Overture are thin | Paid data or your own |
 
 Not possible: production apps on the public `tile.openstreetmap.org` or public Nominatim

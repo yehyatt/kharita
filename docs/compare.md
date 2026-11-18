@@ -26,7 +26,7 @@ All three put an interactive map, markers and address search in a Flutter or web
 | Business ratings, photos, opening hours | No | Limited | Yes |
 | Road routing and ETAs | Not yet ([roadmap](https://github.com/yehyatt/mapeleven/blob/main/docs/ROADMAP.md)) | Yes | Yes |
 | Live traffic | No | Yes | Yes |
-| Satellite imagery | No | Yes | Yes |
+| Satellite imagery | With your own Esri or MapTiler key ([guide](satellite.md)) | Yes | Yes |
 | Offline maps | Planned | Yes | No |
 
 Pricing of the other two changes often; check their pricing pages for current numbers.
@@ -42,7 +42,7 @@ Pricing of the other two changes often; check their pricing pages for current nu
 ## Choose Mapbox or Google Maps when
 
 - You need turn-by-turn navigation, traffic-aware ETAs or live traffic today.
-- You need satellite imagery.
+- You need satellite imagery included, without a separate imagery account.
 - Your users search for businesses by rating, photos or opening hours (Google's place data is the strongest here).
 - You want a managed service with a commercial SLA and do not want to run any server.
 

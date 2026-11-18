@@ -1,3 +1,8 @@
+## 0.3.1
+
+- Satellite imagery under the roads and labels: `MapelevenMap(imagery: MapelevenImagery.esri('...'))`, also `MapelevenImagery.mapTiler(...)` and `MapelevenImagery.custom(...)`. Uses your own key from the imagery provider; Mapeleven does not proxy it. Set `imagery` to null to switch back; markers and layers are kept. `hybridStyle()` is exported.
+- Web SDK: `imagery` option, `setImagery()`, `esriImagery()`, `mapTilerImagery()`, `customImagery()`, `hybridStyle()`.
+
 ## 0.3.0
 
 - API keys for the hosted service: `MapelevenProvider.hosted(key: 'mel_...')` and `selfHosted(url, key: ...)`. Get a free key at https://mapeleven.dev/account/. The key goes on the style URL (the server puts it on the tile URLs) and on search requests. Without a key everything works as before, with searches limited per device.

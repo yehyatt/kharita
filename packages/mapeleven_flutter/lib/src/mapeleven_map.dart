@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:maplibre_gl/maplibre_gl.dart';
 
+import 'imagery.dart';
 import 'mapeleven_controller.dart';
 import 'localize.dart';
 import 'provider.dart';
@@ -18,6 +19,7 @@ class MapelevenMap extends StatefulWidget {
     this.provider,
     this.language,
     this.theme = MapelevenTheme.light,
+    this.imagery,
     this.initialCenter = const LatLng(31.9539, 35.9106),
     this.initialZoom = 11,
     this.showUserLocation = false,
@@ -35,6 +37,12 @@ class MapelevenMap extends StatefulWidget {
   /// `MaterialApp`, else the device): Arabic for Arabic, English otherwise.
   final MapelevenLanguage? language;
   final MapelevenTheme theme;
+
+  /// Satellite imagery under the roads and labels, from a provider you hold
+  /// a key for, e.g. `MapelevenImagery.esri('...')`. Null shows the vector
+  /// map in [theme]. Switch between the two by rebuilding; markers and layers
+  /// are kept.
+  final MapelevenImagery? imagery;
   final LatLng initialCenter;
   final double initialZoom;
 
@@ -82,20 +90,20 @@ class _MapelevenMapState extends State<MapelevenMap> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _update(theme: widget.theme);
+    _update(theme: widget.theme, imagery: widget.imagery);
   }
 
   @override
   void didUpdateWidget(MapelevenMap old) {
     super.didUpdateWidget(old);
-    _update(theme: old.theme);
+    _update(theme: old.theme, imagery: old.imagery);
   }
 
   /// Reloads the style when the language (widget or app locale) or theme changed.
-  void _update({required MapelevenTheme theme}) {
+  void _update({required MapelevenTheme theme, required MapelevenImagery? imagery}) {
     final next = _pickLanguage();
     final first = _language == null;
-    if (!first && next == _language && theme == widget.theme) return;
+    if (!first && next == _language && theme == widget.theme && imagery == widget.imagery) return;
     _language = next;
     _controller?.language = next;
     if (!first) _controller?.onStyleChanging();
@@ -110,12 +118,17 @@ class _MapelevenMapState extends State<MapelevenMap> {
 
   Future<void> _resolveStyle() async {
     final request = ++_request;
-    final url = _provider.styleUrl(widget.theme, language);
+    final imagery = widget.imagery;
+    // Hybrid maps take their roads and labels from the dark theme: light text
+    // on a dark halo reads best over imagery.
+    final url = _provider.styleUrl(imagery == null ? widget.theme : MapelevenTheme.dark, language);
     try {
       String style = url;
-      if (_provider.localizeOnClient) {
-        final base = _styleCache[url] ??= await _fetchJson(url);
-        style = jsonEncode(localizeStyle(base, language));
+      if (_provider.localizeOnClient || imagery != null) {
+        var json = _styleCache[url] ??= await _fetchJson(url);
+        if (_provider.localizeOnClient) json = localizeStyle(json, language);
+        if (imagery != null) json = hybridStyle(json, imagery);
+        style = jsonEncode(json);
       }
       if (mounted && request == _request) {
         setState(() {

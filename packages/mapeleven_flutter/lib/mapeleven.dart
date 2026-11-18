@@ -5,6 +5,7 @@ library;
 export 'package:maplibre_gl/maplibre_gl.dart' show LatLng, LatLngBounds, MapLibreMapController;
 
 export 'src/icons.dart';
+export 'src/imagery.dart' show MapelevenImagery, hybridStyle;
 export 'src/mapeleven_controller.dart';
 export 'src/mapeleven_map.dart';
 export 'src/localize.dart';
