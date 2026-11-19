@@ -72,6 +72,14 @@ OpenStreetMap changes every day. Re-run monthly (or weekly):
 
 The scripts build the new data first and swap it in, so the server keeps answering during the update.
 
+To do this automatically, `scripts/refresh.sh` runs all three in order (it also pulls the latest scripts with `git pull`). Schedule it once with:
+
+```bash
+sudo ./scripts/install-refresh.sh   # 02:00 UTC on the 20th of each month
+```
+
+It logs to `/var/log/mapeleven-refresh.log`.
+
 ## Attribution
 
 Keep "© OpenStreetMap contributors" visible wherever the map shows. The SDKs do this for you; if you draw tiles with other software, add it yourself.
