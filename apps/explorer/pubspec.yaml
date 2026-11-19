@@ -37,6 +37,7 @@ dependencies:
   geolocator: ^14.1.2
   shared_preferences: ^2.5.6
   url_launcher: ^6.3.3
+  http: ^1.6.0
   mapeleven:
     path: ../../packages/mapeleven_flutter
   flutter_localizations:

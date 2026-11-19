@@ -178,6 +178,10 @@ def main():
                 continue
             key, value = MAP.get(cat, ("office" if cat.endswith("service") else "shop", cat or "yes"))
             lon, lat = feat["geometry"]["coordinates"][:2]
+            # Three decimals or fewer is a city or district centroid, not the place.
+            if min(len(repr(float(v)).split(".")[-1]) for v in (lon, lat)) <= 3:
+                stats["rough_location"] += 1
+                continue
             if in_osm(grid, (lon, lat), norm(name), value):
                 stats["already_in_osm"] += 1
                 continue

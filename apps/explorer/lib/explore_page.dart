@@ -8,6 +8,7 @@ import 'package:mapeleven/mapeleven.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_state.dart';
+import 'contribute_page.dart';
 import 'main.dart';
 import 'search_page.dart';
 import 'strings.dart';
@@ -28,9 +29,12 @@ const categories = <(String, IconData, Set<String>)>[
 
 /// The selected place and how it is shown.
 class _Selection {
-  _Selection(this.place, {this.loading = false});
+  _Selection(this.place, {this.loading = false, this.dropped = false});
   SavedPlace place;
   bool loading;
+
+  /// A long-press pin rather than a known place.
+  final bool dropped;
 }
 
 class ExplorePage extends StatefulWidget {
@@ -75,9 +79,15 @@ class ExplorePageState extends State<ExplorePage> {
 
   // ── Selecting places ──────────────────────────────────────────────────────
 
-  Future<void> _select(SavedPlace place, {bool fly = true, bool lookUpAddress = false, LatLngBounds? bounds}) async {
+  Future<void> _select(
+    SavedPlace place, {
+    bool fly = true,
+    bool lookUpAddress = false,
+    bool dropped = false,
+    LatLngBounds? bounds,
+  }) async {
     final seq = ++_selectSeq;
-    setState(() => _selected = _Selection(place, loading: lookUpAddress));
+    setState(() => _selected = _Selection(place, loading: lookUpAddress, dropped: dropped));
     final map = _map;
     if (map == null) return;
     await map.addMarker(place.position, id: 'selected', icon: 'selected', anchor: MapelevenAnchor.bottom);
@@ -98,11 +108,23 @@ class ExplorePageState extends State<ExplorePage> {
           position: place.position,
           kind: place.kind ?? found?.type,
         ),
+        dropped: dropped,
       );
     });
   }
 
-  void _dropPin(LatLng p) => _select(SavedPlace(name: '', address: '', position: p), lookUpAddress: true, fly: false);
+  void _dropPin(LatLng p) =>
+      _select(SavedPlace(name: '', address: '', position: p), lookUpAddress: true, fly: false, dropped: true);
+
+  Future<void> _contribute(_Selection selection) => Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => ContributePage(
+        state: state,
+        position: selection.place.position,
+        place: selection.dropped ? null : selection.place,
+      ),
+    ),
+  );
 
   void _onPoiTap(MapelevenPoi poi) => _select(
     SavedPlace(name: poi.name, address: '', position: poi.position, kind: poi.kind),
@@ -244,6 +266,7 @@ class ExplorePageState extends State<ExplorePage> {
             onSave: () => state.toggleSaved(selected.place),
             onShare: () => _share(selected.place),
             onCopy: () => _copyCoordinates(selected.place),
+            onContribute: () => _contribute(selected),
           );
         } else if (_category != null) {
           sheet = _ResultsSheet(
@@ -484,13 +507,14 @@ class _PlaceSheet extends StatelessWidget {
     required this.onSave,
     required this.onShare,
     required this.onCopy,
+    required this.onContribute,
   });
 
   final _Selection selection;
   final S s;
   final LatLng? from;
   final bool saved;
-  final VoidCallback onClose, onDirections, onSave, onShare, onCopy;
+  final VoidCallback onClose, onDirections, onSave, onShare, onCopy, onContribute;
 
   @override
   Widget build(BuildContext context) {
@@ -557,6 +581,12 @@ class _PlaceSheet extends StatelessWidget {
             const Divider(height: 24),
             if (address.isNotEmpty) _InfoRow(icon: Icons.place_outlined, text: address),
             _InfoRow(icon: Icons.pin_drop_outlined, text: coords, ltr: true, onTap: onCopy),
+            _InfoRow(
+              icon: selection.dropped ? Icons.add_location_alt_outlined : Icons.edit_location_alt_outlined,
+              text: selection.dropped ? s.addPlace : s.suggestEdit,
+              onTap: onContribute,
+              action: true,
+            ),
           ],
         ),
       ),
@@ -565,11 +595,14 @@ class _PlaceSheet extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.text, this.ltr = false, this.onTap});
+  const _InfoRow({required this.icon, required this.text, this.ltr = false, this.onTap, this.action = false});
   final IconData icon;
   final String text;
   final bool ltr;
   final VoidCallback? onTap;
+
+  /// Styled as a link that opens something, rather than copyable info.
+  final bool action;
 
   @override
   Widget build(BuildContext context) {
@@ -588,10 +621,14 @@ class _InfoRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textDirection: ltr ? TextDirection.ltr : null,
                 textAlign: TextAlign.start,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: action ? brand : null,
+                  fontWeight: action ? FontWeight.w600 : null,
+                ),
               ),
             ),
-            if (onTap != null) const Icon(Icons.copy, size: 18, color: Colors.black38),
+            if (onTap != null && !action) const Icon(Icons.copy, size: 18, color: Colors.black38),
+            if (action) Icon(Icons.chevron_right, color: brand.withValues(alpha: 0.7)),
           ],
         ),
       ),

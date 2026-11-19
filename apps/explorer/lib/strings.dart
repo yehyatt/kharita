@@ -17,6 +17,53 @@ class S {
   String get language => _('اللغة', 'Language');
   String get satellite => _('قمر صناعي', 'Satellite');
   String get mapType => _('نوع الخريطة', 'Map type');
+
+  // Contribute (OpenStreetMap notes)
+  String get addPlace => _('إضافة مكان ناقص', 'Add a missing place');
+  String get addPlaceShort => _('إضافة مكان', 'Add place');
+  String get suggestEdit => _('اقتراح تعديل', 'Suggest an edit');
+  String get placeName => _('اسم المكان', 'Place name');
+  String get placeType => _('نوع المكان', 'Type of place');
+  String get whatsWrong => _('ما المشكلة؟', "What's wrong?");
+  String get problemClosed => _('مغلق نهائياً', 'Closed for good');
+  String get problemName => _('الاسم خاطئ', 'Wrong name');
+  String get problemLocation => _('الموقع خاطئ', 'Wrong location');
+  String get problemDetails => _('معلومات خاطئة', 'Wrong details');
+  String get problemOther => _('شيء آخر', 'Something else');
+  String get details => _('تفاصيل', 'Details');
+  String get detailsHintAdd => _('مثلاً: رقم الهاتف، ساعات العمل، الطابق', 'For example: phone, opening hours, floor');
+  String get detailsHintEdit => _('ما الصحيح؟', 'What is correct?');
+  String get publicNotice => _(
+    'يُرسل اقتراحك كملاحظة عامة إلى OpenStreetMap ليراجعها متطوعون. لا تكتب معلومات شخصية.',
+    'Your suggestion is sent as a public note to OpenStreetMap, where volunteers review it. Do not include personal information.',
+  );
+  String get send => _('إرسال', 'Send');
+  String get nameRequired => _('اكتب اسم المكان', 'Enter the place name');
+  String get sendFailed => _('تعذّر الإرسال. حاول مرة أخرى.', 'Could not send. Try again.');
+  String get thanks => _('شكراً لك', 'Thank you');
+  String get sentExplain => _(
+    'وصل اقتراحك إلى OpenStreetMap. بعد أن يراجعه المتطوعون يظهر على الخريطة مع التحديث الشهري.',
+    'Your suggestion reached OpenStreetMap. Once volunteers review it, it appears on the map with the monthly update.',
+  );
+  String get viewNote => _('عرض الملاحظة', 'View note');
+  String get done => _('تم', 'Done');
+  String placeTypeLabel(String key) => switch (key) {
+    'restaurant' => _('مطعم', 'Restaurant'),
+    'cafe' => _('مقهى', 'Café'),
+    'supermarket' => _('سوبرماركت أو بقالة', 'Supermarket or grocery'),
+    'pharmacy' => _('صيدلية', 'Pharmacy'),
+    'clinic' => _('عيادة', 'Clinic'),
+    'hospital' => _('مستشفى', 'Hospital'),
+    'place_of_worship' => _('مسجد أو مكان عبادة', 'Mosque or place of worship'),
+    'fuel' => _('محطة وقود', 'Fuel station'),
+    'bank' => _('بنك', 'Bank'),
+    'atm' => _('صرّاف آلي', 'ATM'),
+    'hotel' => _('فندق', 'Hotel'),
+    'school' => _('مدرسة', 'School'),
+    'shop' => _('متجر', 'Shop'),
+    'office' => _('مكتب أو شركة', 'Office or company'),
+    _ => _('آخر', 'Other'),
+  };
   String get directions => _('الاتجاهات', 'Directions');
   String get save => _('حفظ', 'Save');
   String get unsave => _('محفوظ', 'Saved');
