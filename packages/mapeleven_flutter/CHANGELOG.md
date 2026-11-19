@@ -1,3 +1,7 @@
+## Unreleased
+
+- `MapelevenMap`: `compassPosition`, `compassMargins` and `attributionMargins`, for apps that draw a bottom sheet over the map (the attribution button rides above it). Native only; MapLibre GL JS ignores the margins.
+
 ## 0.3.1
 
 - Satellite imagery under the roads and labels: `MapelevenMap(imagery: MapelevenImagery.esri('...'))`, also `MapelevenImagery.mapTiler(...)` and `MapelevenImagery.custom(...)`. Uses your own key from the imagery provider; Mapeleven does not proxy it. Set `imagery` to null to switch back; markers and layers are kept. `hybridStyle()` is exported.

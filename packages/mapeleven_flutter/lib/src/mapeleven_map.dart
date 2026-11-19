@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' show Point;
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -29,6 +30,9 @@ class MapelevenMap extends StatefulWidget {
     this.onPoiTap,
     this.onCameraIdle,
     this.compassEnabled = true,
+    this.compassPosition,
+    this.compassMargins,
+    this.attributionMargins,
   });
 
   /// Defaults to [MapelevenProvider.openFreeMap] (development use).
@@ -65,6 +69,18 @@ class MapelevenMap extends StatefulWidget {
 
   /// Shows the compass after the user rotates the map.
   final bool compassEnabled;
+
+  /// Corner for the compass. Defaults to the bottom corner opposite the
+  /// attribution button.
+  final CompassViewPosition? compassPosition;
+
+  /// Compass offset from its corner, in logical pixels.
+  final Point<num>? compassMargins;
+
+  /// Attribution button offset from its corner, in logical pixels. Raise it
+  /// above any sheet or panel you draw over the bottom of the map: the
+  /// OpenStreetMap credit must stay visible.
+  final Point<num>? attributionMargins;
 
   @override
   State<MapelevenMap> createState() => _MapelevenMapState();
@@ -196,7 +212,10 @@ class _MapelevenMapState extends State<MapelevenMap> {
       onMapLongClick: (_, latLng) => widget.onLongPress?.call(latLng),
       // OSM's licence (ODbL) requires visible attribution; Mapeleven keeps the button on.
       attributionButtonPosition: rtl ? AttributionButtonPosition.bottomLeft : AttributionButtonPosition.bottomRight,
-      compassViewPosition: rtl ? CompassViewPosition.bottomRight : CompassViewPosition.bottomLeft,
+      attributionButtonMargins: widget.attributionMargins,
+      compassViewPosition:
+          widget.compassPosition ?? (rtl ? CompassViewPosition.bottomRight : CompassViewPosition.bottomLeft),
+      compassViewMargins: widget.compassMargins,
       trackCameraPosition: true,
     );
   }

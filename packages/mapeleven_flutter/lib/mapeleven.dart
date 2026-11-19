@@ -2,7 +2,7 @@
 /// search and self-hostable tiles.
 library;
 
-export 'package:maplibre_gl/maplibre_gl.dart' show LatLng, LatLngBounds, MapLibreMapController;
+export 'package:maplibre_gl/maplibre_gl.dart' show CompassViewPosition, LatLng, LatLngBounds, MapLibreMapController;
 
 export 'src/icons.dart';
 export 'src/imagery.dart' show MapelevenImagery, hybridStyle;

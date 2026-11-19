@@ -140,15 +140,7 @@ Future<void> showLayersSheet(BuildContext context, AppState state) {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(s.layers, style: Theme.of(context).textTheme.titleMedium),
-                if (AppState.imagery != null)
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    secondary: const Icon(Icons.satellite_alt_outlined),
-                    title: Text(s.satellite),
-                    value: state.satellite,
-                    onChanged: state.setSatellite,
-                  ),
+                Text(s.mapType, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 10,
@@ -157,9 +149,20 @@ Future<void> showLayersSheet(BuildContext context, AppState state) {
                     for (final t in MapelevenTheme.values)
                       _ThemeTile(
                         label: s.theme(t),
-                        theme: t,
-                        selected: state.theme == t,
-                        onTap: () => state.setTheme(t),
+                        colors: _ThemeTile.swatches[t]!,
+                        selected: !state.satellite && state.theme == t,
+                        onTap: () {
+                          state.setSatellite(false);
+                          state.setTheme(t);
+                        },
+                      ),
+                    if (AppState.imagery != null)
+                      _ThemeTile(
+                        label: s.satellite,
+                        colors: const [Color(0xFF3F5F3A), Color(0xFF8C7A5B), Color(0xFF2F4F6F)],
+                        icon: Icons.satellite_alt_outlined,
+                        selected: state.satellite,
+                        onTap: () => state.setSatellite(true),
                       ),
                   ],
                 ),
@@ -184,13 +187,14 @@ Future<void> showLayersSheet(BuildContext context, AppState state) {
 }
 
 class _ThemeTile extends StatelessWidget {
-  const _ThemeTile({required this.label, required this.theme, required this.selected, required this.onTap});
+  const _ThemeTile({required this.label, required this.colors, required this.selected, required this.onTap, this.icon});
   final String label;
-  final MapelevenTheme theme;
+  final List<Color> colors;
+  final IconData? icon;
   final bool selected;
   final VoidCallback onTap;
 
-  static const _swatches = {
+  static const swatches = {
     MapelevenTheme.light: [Color(0xFFF2EFE9), Color(0xFFAAD3DF), Color(0xFFFFFFFF)],
     MapelevenTheme.dark: [Color(0xFF34373D), Color(0xFF1E2024), Color(0xFF5A5D63)],
     MapelevenTheme.white: [Color(0xFFFFFFFF), Color(0xFFDCE6EA), Color(0xFFEDEDED)],
@@ -200,7 +204,7 @@ class _ThemeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = _swatches[theme]!;
+    final c = colors;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -214,6 +218,7 @@ class _ThemeTile extends StatelessWidget {
               border: Border.all(color: selected ? brand : Colors.black12, width: selected ? 3 : 1),
               gradient: LinearGradient(colors: c, begin: Alignment.topLeft, end: Alignment.bottomRight),
             ),
+            child: icon == null ? null : Icon(icon, color: Colors.white),
           ),
           const SizedBox(height: 4),
           Text(label, style: TextStyle(fontSize: 12, fontWeight: selected ? FontWeight.w600 : FontWeight.w400)),

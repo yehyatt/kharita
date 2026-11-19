@@ -16,6 +16,7 @@ class S {
   String get layers => _('نمط الخريطة', 'Map style');
   String get language => _('اللغة', 'Language');
   String get satellite => _('قمر صناعي', 'Satellite');
+  String get mapType => _('نوع الخريطة', 'Map type');
   String get directions => _('الاتجاهات', 'Directions');
   String get save => _('حفظ', 'Save');
   String get unsave => _('محفوظ', 'Saved');
