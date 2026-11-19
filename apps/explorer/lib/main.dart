@@ -146,7 +146,7 @@ Future<void> showLayersSheet(BuildContext context, AppState state) {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    for (final t in MapelevenTheme.values)
+                    for (final t in AppState.themes)
                       _ThemeTile(
                         label: s.theme(t),
                         colors: _ThemeTile.swatches[t]!,

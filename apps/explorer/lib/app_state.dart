@@ -49,6 +49,9 @@ class AppState extends ChangeNotifier {
   MapelevenLanguage language = MapelevenLanguage.ar;
   MapelevenTheme theme = MapelevenTheme.light;
 
+  /// Map types offered in the app. The SDK has more; two keep the choice simple.
+  static const themes = [MapelevenTheme.light, MapelevenTheme.dark];
+
   /// Satellite imagery, when the build was given a key:
   /// `--dart-define=ESRI_KEY=...` or `--dart-define=MAPTILER_KEY=...`.
   /// Public builds have none, so the satellite option stays hidden.
@@ -83,7 +86,8 @@ class AppState extends ChangeNotifier {
     try {
       final p = _prefs = await SharedPreferences.getInstance();
       language = MapelevenLanguage.values.asNameMap()[p.getString('language')] ?? language;
-      theme = MapelevenTheme.values.asNameMap()[p.getString('theme')] ?? theme;
+      final savedTheme = MapelevenTheme.values.asNameMap()[p.getString('theme')];
+      if (themes.contains(savedTheme)) theme = savedTheme!;
       satellite = imagery != null && (p.getBool('satellite') ?? false);
       saved.addAll(_decode(p.getString('saved')));
       recent.addAll(_decode(p.getString('recent')));
