@@ -2,7 +2,7 @@
 //
 // - Sign in with GitHub, create keys, see usage: /auth/*, /api/* (the dashboard is /account/ on the site).
 // - Serves the map styles (/styles/*). With ?key=, tile URLs in the style carry the key.
-// - Caddy asks /check before search requests and keyed tile requests (forward_auth): it validates the
+// - Caddy asks /check before search and routing requests and keyed tile requests (forward_auth): it validates the
 //   key, applies the free monthly limits and the per-IP limit for requests without a key, and counts usage.
 //
 // Runs on Bun with no dependencies: bun run server.ts
@@ -264,6 +264,7 @@ async function serveStyle(req: Request, url: URL): Promise<Response> {
 function check(req: Request): Response {
   const original = new URL(req.headers.get("x-forwarded-uri") ?? "/", BASE);
   if ((req.headers.get("x-forwarded-method") ?? "GET") === "OPTIONS") return new Response(null, { status: 204 });
+  // Routing requests (/routing/*) count as searches.
   const kind: Kind = original.pathname.startsWith("/tiles/") ? "tile" : "search";
   const checked = checkKey(original.searchParams.get("key"), req.headers, kind);
   if (checked instanceof Response) return checked;
@@ -274,7 +275,7 @@ function check(req: Request): Response {
   if (kind === "search") {
     const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
     if (!anonAllowed(ip))
-      return fail(429, `Too many searches without a key. Get a free key at ${BASE}/account/`);
+      return fail(429, `Too many requests without a key. Get a free key at ${BASE}/account/`);
   }
   count(0, 0, kind);
   return new Response(null, { status: 204 });

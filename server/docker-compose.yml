@@ -1,4 +1,4 @@
-# Mapeleven map server: vector tiles, styles, fonts and search on one Hetzner box.
+# Mapeleven map server: vector tiles, styles, fonts, search and routing on one Hetzner box.
 # Copy .env.example to .env, then follow README.md.
 services:
   caddy:
@@ -51,6 +51,20 @@ services:
               "-data-dir", "/photon", "-listen-ip", "0.0.0.0", "-listen-port", "2322"]
     volumes:
       - ./data/photon:/photon
+
+  # Valhalla routing (car, walking, bicycle) over OpenStreetMap roads.
+  # scripts/import-routing.sh builds the road graph into data/valhalla.
+  routing:
+    image: ghcr.io/valhalla/valhalla-scripted:3.6.1
+    restart: unless-stopped
+    profiles: ["routing"]
+    environment:
+      serve_tiles: "True"
+      use_tiles_ignore_pbf: "True"
+      build_elevation: "False"
+      server_threads: "2"
+    volumes:
+      - ./data/valhalla:/custom_files
 
 volumes:
   caddy_data:

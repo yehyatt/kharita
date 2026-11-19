@@ -55,6 +55,19 @@
 		}
 	}
 
+	# Valhalla routing: /routing/route?json=..., /routing/isochrone?json=...
+	# Checked and counted like search (one route = one search).
+	handle /routing/* {
+		route {
+			forward_auth api:8081 {
+				uri /check
+			}
+			uri query -key
+			uri strip_prefix /routing
+			reverse_proxy routing:8002
+		}
+	}
+
 	# Website, docs and the Explorer demo (website/deploy.sh uploads them to data/site).
 	handle {
 		root * /srv/site
