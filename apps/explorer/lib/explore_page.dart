@@ -300,7 +300,13 @@ class ExplorePageState extends State<ExplorePage> {
     await _map?.showRoute(
       trip.routes[trip.chosen],
       alternatives: [for (final (i, r) in trip.routes.indexed) if (i != trip.chosen) r],
-      padding: (left: 40, top: MediaQuery.paddingOf(context).top + 140, right: 40, bottom: size.height * 0.36),
+      // On the web the map already stops at the sheet (see build), so less bottom padding.
+      padding: (
+        left: 40,
+        top: MediaQuery.paddingOf(context).top + 150,
+        right: 40,
+        bottom: kIsWeb ? 40 : math.max(_sheetHeight, size.height * 0.3) + 24,
+      ),
     );
   }
 
@@ -1056,7 +1062,7 @@ IconData _maneuverIcon(MapelevenManeuver m) => switch (m) {
   MapelevenManeuver.keepRight => Icons.fork_right,
   MapelevenManeuver.keepLeft => Icons.fork_left,
   MapelevenManeuver.merge => Icons.merge,
-  MapelevenManeuver.roundabout => Icons.roundabout_right,
+  MapelevenManeuver.roundabout || MapelevenManeuver.roundaboutExit => Icons.roundabout_right,
   MapelevenManeuver.ferry => Icons.directions_boat,
   MapelevenManeuver.other => Icons.straight,
 };

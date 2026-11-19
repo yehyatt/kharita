@@ -8,7 +8,7 @@ const COSTING: Record<MapelevenTravelMode, string> = { car: "auto", walk: "pedes
 export type MapelevenManeuver =
   | "start" | "arrive" | "continue" | "slightRight" | "right" | "sharpRight" | "uTurn" | "sharpLeft"
   | "left" | "slightLeft" | "rampRight" | "rampLeft" | "exitRight" | "exitLeft" | "keepRight"
-  | "keepLeft" | "merge" | "roundabout" | "ferry" | "other";
+  | "keepLeft" | "merge" | "roundabout" | "roundaboutExit" | "ferry" | "other";
 
 /** One instruction of a route. */
 export interface MapelevenStep {
@@ -133,7 +133,7 @@ const MANEUVERS: Record<number, MapelevenManeuver> = {
   9: "slightRight", 10: "right", 11: "sharpRight", 12: "uTurn", 13: "uTurn", 14: "sharpLeft",
   15: "left", 16: "slightLeft", 18: "rampRight", 19: "rampLeft", 20: "exitRight", 21: "exitLeft",
   23: "keepRight", 24: "keepLeft", 25: "merge", 37: "merge", 38: "merge",
-  26: "roundabout", 27: "roundabout", 28: "ferry", 29: "ferry",
+  26: "roundabout", 27: "roundaboutExit", 28: "ferry", 29: "ferry",
 };
 
 const ORDINALS_AR = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع", "الثامن"];
@@ -161,10 +161,14 @@ function arabic(m: MapelevenManeuver, names: string[], exit: number | undefined,
     case "keepRight": return "ابقَ على اليمين" + along;
     case "keepLeft": return "ابقَ على اليسار" + along;
     case "merge": return "اندمج في الطريق" + onto;
-    case "roundabout":
-      return exit && exit >= 1 && exit <= ORDINALS_AR.length
-        ? `عند الدوار، اسلك المخرج ${ORDINALS_AR[exit - 1]}${onto}`
-        : "ادخل الدوار" + onto;
+    case "roundabout": {
+      // Valhalla names the roundabout itself here ("الدوار الثاني"), not the street after it.
+      const at = names.length && names[0].includes("دوار") ? names[0] : "الدوار";
+      if (!exit || exit < 1) return `ادخل ${at}`;
+      const nth = exit <= ORDINALS_AR.length ? ORDINALS_AR[exit - 1] : `رقم ${exit}`;
+      return `عند ${at}، اسلك المخرج ${nth}`;
+    }
+    case "roundaboutExit": return "اخرج من الدوار" + onto;
     case "ferry": return "استقل العبّارة";
     default: return "تابع" + along;
   }

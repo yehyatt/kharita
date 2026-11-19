@@ -37,6 +37,9 @@ enum MapelevenManeuver {
   keepLeft,
   merge,
   roundabout,
+
+  /// Leaving a roundabout, after [roundabout].
+  roundaboutExit,
   ferry,
   other,
 }
@@ -251,7 +254,8 @@ MapelevenManeuver _maneuver(int t) => switch (t) {
       23 => MapelevenManeuver.keepRight,
       24 => MapelevenManeuver.keepLeft,
       25 || 37 || 38 => MapelevenManeuver.merge,
-      26 || 27 => MapelevenManeuver.roundabout,
+      26 => MapelevenManeuver.roundabout,
+      27 => MapelevenManeuver.roundaboutExit,
       28 || 29 => MapelevenManeuver.ferry,
       _ => MapelevenManeuver.other,
     };
@@ -285,9 +289,14 @@ String _arabic(MapelevenManeuver m, List<String> names, int? exit, MapelevenTrav
     MapelevenManeuver.keepRight => 'ابقَ على اليمين$along',
     MapelevenManeuver.keepLeft => 'ابقَ على اليسار$along',
     MapelevenManeuver.merge => 'اندمج في الطريق$onto',
-    MapelevenManeuver.roundabout => exit != null && exit >= 1 && exit <= _ordinalsAr.length
-        ? 'عند الدوار، اسلك المخرج ${_ordinalsAr[exit - 1]}$onto'
-        : 'ادخل الدوار$onto',
+    // Valhalla names the roundabout itself here ("الدوار الثاني"), not the street after it.
+    MapelevenManeuver.roundabout => () {
+        final at = names.isNotEmpty && names.first.contains('دوار') ? names.first : 'الدوار';
+        if (exit == null || exit < 1) return 'ادخل $at';
+        final nth = exit <= _ordinalsAr.length ? _ordinalsAr[exit - 1] : 'رقم $exit';
+        return 'عند $at، اسلك المخرج $nth';
+      }(),
+    MapelevenManeuver.roundaboutExit => 'اخرج من الدوار$onto',
     MapelevenManeuver.ferry => 'استقل العبّارة',
     MapelevenManeuver.other => 'تابع$along',
   };
@@ -305,7 +314,8 @@ List<LatLng> decodePolyline6(String encoded) {
         result |= (b & 0x1f) << shift;
         shift += 5;
       } while (b >= 0x20);
-      final delta = (result & 1) != 0 ? ~(result >> 1) : result >> 1;
+      // Not ~(result >> 1): on the web, Dart's bitwise NOT gives an unsigned 32-bit value.
+      final delta = (result & 1) != 0 ? -((result >> 1) + 1) : result >> 1;
       if (i == 0) {
         lat += delta;
       } else {
