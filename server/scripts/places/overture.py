@@ -154,6 +154,7 @@ def main():
     src, out, *dumps = sys.argv[1:]
     grid = load_osm(dumps)
     stats = Counter()
+    added = defaultdict(list)  # Overture repeats some places; keep the first
     pois = open(f"{out}/overture-pois.geojsonseq", "w")
     photon = open(f"{out}/overture-photon.jsonl", "w")
     with open(src) as f:
@@ -180,6 +181,14 @@ def main():
             if in_osm(grid, (lon, lat), norm(name), value):
                 stats["already_in_osm"] += 1
                 continue
+            name_n = norm(name)
+            here = cell(lon, lat)
+            if any(n == name_n and metres((lon, lat), q) <= 100
+                   for dx in (-1, 0, 1) for dy in (-1, 0, 1)
+                   for q, n in added.get((here[0] + dx, here[1] + dy), ())):
+                stats["duplicate_in_overture"] += 1
+                continue
+            added[here].append(((lon, lat), name_n))
             stats["added_to_search"] += 1
             lang = "ar" if ARABIC.search(name) else "en"
 
