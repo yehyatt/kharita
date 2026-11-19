@@ -19,7 +19,11 @@ import unicodedata
 from collections import Counter, defaultdict
 
 COUNTRIES = {"JO", "SA", "AE", "QA", "KW", "BH", "OM", "YE"}
-MIN_CONFIDENCE = 0.5
+MIN_CONFIDENCE = 0.5  # search
+MAP_CONFIDENCE = 0.6  # map points: categorised places only, a bit stricter
+
+# Social handles, links and bare tags rather than place names.
+JUNK = re.compile(r"^[@#]|https?:|www\.|\.(com|net|org|ae|sa|jo|qa|kw|om|bh)\b|^[a-z0-9_]+\.[a-z0-9_.]+$", re.I)
 
 # Not added from Overture (OSM's own data is untouched).
 SKIP = {
@@ -168,25 +172,27 @@ def main():
                 stats["skipped_category"] += 1
                 continue
             name = ((p.get("names") or {}).get("primary") or "").strip()
-            if not name:
+            if len(name) < 3 or JUNK.search(name) or not re.search(r"[^\W\d_]", name):
+                stats["junk_name"] += 1
                 continue
             key, value = MAP.get(cat, ("office" if cat.endswith("service") else "shop", cat or "yes"))
             lon, lat = feat["geometry"]["coordinates"][:2]
             if in_osm(grid, (lon, lat), norm(name), value):
                 stats["already_in_osm"] += 1
                 continue
-            stats["added"] += 1
-            stats["mapped" if cat in MAP else "unmapped"] += 1
+            stats["added_to_search"] += 1
             lang = "ar" if ARABIC.search(name) else "en"
 
-            props = {"name": name, f"name:{lang}": name, "kind": value if cat in MAP else "other",
-                     "min_zoom": 14 if value in BIG else 15, "source": "overture"}
-            if lang == "ar":
-                props["script"] = "Arabic"
-            pois.write(json.dumps({
-                "type": "Feature", "geometry": {"type": "Point", "coordinates": [lon, lat]},
-                "properties": props, "tippecanoe": {"minzoom": props["min_zoom"]},
-            }, ensure_ascii=False) + "\n")
+            if cat in MAP and (p.get("confidence") or 0) >= MAP_CONFIDENCE:
+                stats["added_to_map"] += 1
+                props = {"name": name, f"name:{lang}": name, "kind": value,
+                         "min_zoom": 14 if value in BIG else 15, "source": "overture"}
+                if lang == "ar":
+                    props["script"] = "Arabic"
+                pois.write(json.dumps({
+                    "type": "Feature", "geometry": {"type": "Point", "coordinates": [lon, lat]},
+                    "properties": props, "tippecanoe": {"minzoom": props["min_zoom"]},
+                }, ensure_ascii=False) + "\n")
 
             address = {k: v for k, v in (("street", addr.get("freeform")), ("city", addr.get("locality")),
                                          ("state", addr.get("region"))) if v}

@@ -43,7 +43,10 @@ function widenPois(layerList) {
 
 const OVERTURE_ATTRIBUTION = '<a href="https://overturemaps.org">Overture Maps</a>';
 
-/** Same look as the OSM `pois` layer, for Overture places OSM lacks. Unknown kinds get the generic dot. */
+/**
+ * Same look as the OSM `pois` layer, for Overture places OSM lacks. Placed under it, so when labels
+ * collide the OSM place wins (MapLibre places the topmost layer's symbols first).
+ */
 function overtureLayer(layerList) {
   const pois = layerList.find((l) => l.id === "pois");
   if (!pois) return layerList; // flavours without place icons (white, grayscale, black)
@@ -52,8 +55,7 @@ function overtureLayer(layerList) {
   layer.source = "overture";
   layer.filter = [">=", ["zoom"], ["get", "min_zoom"]];
   const icon = layer.layout["icon-image"];
-  icon[icon.length - 1] = ["case", ["==", ["get", "kind"], "other"], "townspot", ["get", "kind"]];
-  layerList.splice(layerList.indexOf(pois) + 1, 0, layer);
+  layerList.splice(layerList.indexOf(pois), 0, layer);
   return layerList;
 }
 
