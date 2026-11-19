@@ -9,11 +9,18 @@ set -a; source .env; set +a
 rm -rf data/valhalla-next && mkdir -p data/valhalla-next
 urls=""
 for region in ${ROUTING_PBFS}; do urls="$urls https://download.geofabrik.de/${region}-latest.osm.pbf"; done
-echo "Building the road graph from:${urls}"
+echo "Downloading and merging:${urls}"
+# Neighbouring extracts overlap at the borders; Valhalla needs one file without
+# duplicates, so osmium merges them first.
+docker run --rm -v "$PWD/data/valhalla-next:/data" -w /data debian:bookworm-slim sh -c \
+  "apt-get update -qq && apt-get install -y -qq osmium-tool curl ca-certificates >/dev/null \
+   && for u in ${urls}; do curl -fsSL -O \$u; done \
+   && osmium merge -o region.osm.pbf *-latest.osm.pbf && rm *-latest.osm.pbf"
 # The image runs as uid 59999 and writes its config and tiles into /custom_files.
-chown 59999:59999 data/valhalla-next
+chown -R 59999:59999 data/valhalla-next
+echo "Building the road graph"
 docker run --rm -v "$PWD/data/valhalla-next:/custom_files" \
-  -e tile_urls="${urls# }" -e serve_tiles=False -e build_elevation=False \
+  -e serve_tiles=False -e build_elevation=False \
   -e build_admins=True -e build_time_zones=True -e force_rebuild=True \
   ghcr.io/valhalla/valhalla-scripted:3.6.1
 ls data/valhalla-next/valhalla_tiles.tar >/dev/null
