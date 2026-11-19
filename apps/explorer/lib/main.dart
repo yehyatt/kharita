@@ -141,6 +141,14 @@ Future<void> showLayersSheet(BuildContext context, AppState state) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(s.layers, style: Theme.of(context).textTheme.titleMedium),
+                if (AppState.imagery != null)
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: const Icon(Icons.satellite_alt_outlined),
+                    title: Text(s.satellite),
+                    value: state.satellite,
+                    onChanged: state.setSatellite,
+                  ),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 10,

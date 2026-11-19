@@ -48,6 +48,32 @@ class SavedPlace {
 class AppState extends ChangeNotifier {
   MapelevenLanguage language = MapelevenLanguage.ar;
   MapelevenTheme theme = MapelevenTheme.light;
+
+  /// Satellite imagery, when the build was given a key:
+  /// `--dart-define=ESRI_KEY=...` or `--dart-define=MAPTILER_KEY=...`.
+  /// Public builds have none, so the satellite option stays hidden.
+  static final MapelevenImagery? imagery = switch ((
+    const String.fromEnvironment('ESRI_KEY'),
+    const String.fromEnvironment('MAPTILER_KEY'),
+    const String.fromEnvironment('IMAGERY_TILES'),
+  )) {
+    (final esri, _, _) when esri.isNotEmpty => MapelevenImagery.esri(esri),
+    (_, final mt, _) when mt.isNotEmpty => MapelevenImagery.mapTiler(mt),
+    (_, _, final tiles) when tiles.isNotEmpty =>
+      MapelevenImagery.custom(tiles: [tiles], attribution: const String.fromEnvironment('IMAGERY_CREDIT', defaultValue: 'Imagery')),
+    _ => null,
+  };
+
+  bool satellite = false;
+
+  /// Imagery to pass to the map: null unless satellite is on.
+  MapelevenImagery? get activeImagery => satellite ? imagery : null;
+
+  void setSatellite(bool on) {
+    satellite = on;
+    _prefs?.setBool('satellite', on);
+    notifyListeners();
+  }
   final List<SavedPlace> saved = [];
   final List<SavedPlace> recent = [];
   LatLng? myLocation;
@@ -58,6 +84,7 @@ class AppState extends ChangeNotifier {
       final p = _prefs = await SharedPreferences.getInstance();
       language = MapelevenLanguage.values.asNameMap()[p.getString('language')] ?? language;
       theme = MapelevenTheme.values.asNameMap()[p.getString('theme')] ?? theme;
+      satellite = imagery != null && (p.getBool('satellite') ?? false);
       saved.addAll(_decode(p.getString('saved')));
       recent.addAll(_decode(p.getString('recent')));
     } catch (_) {

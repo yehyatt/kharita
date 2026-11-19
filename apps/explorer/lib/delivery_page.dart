@@ -248,6 +248,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                     provider: provider,
                     language: widget.state.language,
                     theme: widget.state.theme,
+                    imagery: widget.state.activeImagery,
                     initialCenter: _pin,
                     initialZoom: 15,
                     compassEnabled: false,

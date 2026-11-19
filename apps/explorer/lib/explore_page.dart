@@ -233,6 +233,7 @@ class ExplorePageState extends State<ExplorePage> {
                       provider: provider,
                       language: state.language,
                       theme: state.theme,
+                      imagery: state.activeImagery,
                       initialCenter: amman,
                       initialZoom: 13,
                       showUserLocation: state.myLocation != null,
