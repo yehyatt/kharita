@@ -10,4 +10,5 @@ export 'src/mapeleven_controller.dart';
 export 'src/mapeleven_map.dart';
 export 'src/localize.dart';
 export 'src/provider.dart';
+export 'src/routing.dart';
 export 'src/search.dart';

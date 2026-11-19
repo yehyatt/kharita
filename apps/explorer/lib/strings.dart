@@ -80,6 +80,30 @@ class S {
   );
   String get zoomInForPlaces => _('قرّب الخريطة لعرض الأماكن', 'Zoom in to see places');
   String nPlaces(int n) => _('$n مكان قريب', '$n places nearby');
+  // Directions
+  String travelMode(MapelevenTravelMode m) => switch (m) {
+    MapelevenTravelMode.car => _('سيارة', 'Car'),
+    MapelevenTravelMode.walk => _('مشي', 'Walk'),
+    MapelevenTravelMode.bike => _('دراجة', 'Bike'),
+  };
+  String get from => _('من', 'From');
+  String get to => _('إلى', 'To');
+  String get yourLocation => _('موقعك', 'Your location');
+  String get mapCentre => _('وسط الخريطة', 'Map centre');
+  String get chooseStart => _('اختر نقطة البداية', 'Choose a starting point');
+  String get routing => _('جارٍ حساب الطريق…', 'Finding a route…');
+  String get noRoute => _('لا يوجد طريق بين النقطتين.', 'No route connects these points.');
+  String get routeFailed => _('تعذّر حساب الطريق. حاول مرة أخرى.', "Couldn't get a route. Try again.");
+  String get steps => _('الخطوات', 'Steps');
+  String get noTraffic => _('الوقت تقديري ولا يشمل الازدحام.', 'Times are estimates without live traffic.');
+  String routeN(int n) => _('طريق $n', 'Route $n');
+  String duration(Duration d) {
+    final m = (d.inSeconds / 60).round();
+    if (m < 60) return _('$m د', '$m min');
+    final h = m ~/ 60, r = m % 60;
+    return r == 0 ? _('$h س', '$h h') : _('$h س $r د', '$h h $r min');
+  }
+
   String get locationOff => _(
     'لم نتمكن من تحديد موقعك. فعّل خدمة الموقع ثم حاول مرة أخرى.',
     "Couldn't get your location. Turn on location services and try again.",

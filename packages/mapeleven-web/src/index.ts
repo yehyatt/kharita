@@ -4,6 +4,8 @@ export { MapelevenMap, pageLanguage } from "./map";
 export type { GeoJSONLayerHandle, GeoJSONLayerOptions, MapelevenMapOptions, MarkerOptions } from "./map";
 export { MapelevenSearch } from "./search";
 export type { MapelevenPlace, SearchOptions } from "./search";
+export { MapelevenRouter, MapelevenRoutingError, decodePolyline6 } from "./routing";
+export type { MapelevenManeuver, MapelevenRoute, MapelevenStep, MapelevenTravelMode, RouteOptions } from "./routing";
 export { hosted, openFreeMap, providers, selfHosted } from "./provider";
 export type { MapelevenLanguage, MapelevenProvider, MapelevenTheme } from "./provider";
 export { customImagery, esriImagery, hybridStyle, mapTilerImagery } from "./imagery";

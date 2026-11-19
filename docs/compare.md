@@ -24,7 +24,8 @@ All three put an interactive map, markers and address search in a Flutter or web
 | Arabic labels and RTL | Yes, switchable at runtime | Yes | Yes |
 | Place search and reverse geocoding | Yes (Photon on OpenStreetMap) | Yes | Yes, with the richest business data |
 | Business ratings, photos, opening hours | No | Limited | Yes |
-| Road routing and ETAs | Not yet ([roadmap](https://github.com/yehyatt/mapeleven/blob/main/docs/ROADMAP.md)) | Yes | Yes |
+| Road routing and ETAs | Yes: car, walking, bicycle, without live traffic ([guide](routing.md)) | Yes | Yes |
+| Turn-by-turn navigation | Not yet ([roadmap](https://github.com/yehyatt/mapeleven/blob/main/docs/ROADMAP.md)) | Yes | Yes |
 | Live traffic | No | Yes | Yes |
 | Satellite imagery | With your own Esri or MapTiler key ([guide](satellite.md)) | Yes | Yes |
 | Offline maps | Planned | Yes | No |

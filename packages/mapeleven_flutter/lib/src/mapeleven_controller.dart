@@ -6,10 +6,12 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 
 import 'icons.dart';
 import 'provider.dart';
+import 'routing.dart';
 import 'search.dart';
 
 const _prefix = 'mapeleven-';
 const _markersSource = '${_prefix}markers';
+const _routeSource = '${_prefix}route';
 const _defaultColor = Color(0xFF0066FF);
 
 /// Options for a GeoJSON layer drawn by [MapelevenController.addGeoJson].
@@ -103,7 +105,8 @@ class MapelevenPoi {
 /// icons, markers and GeoJSON layers are re-added after every style change.
 class MapelevenController {
   MapelevenController.internal(this.raw, this.provider, {this.language = MapelevenLanguage.ar})
-    : search = MapelevenSearch(provider) {
+    : search = MapelevenSearch(provider),
+      router = MapelevenRouter(provider) {
     raw.onFeatureTapped.add(_onFeatureTapped);
   }
 
@@ -111,6 +114,9 @@ class MapelevenController {
   final MapLibreMapController raw;
   final MapelevenProvider provider;
   final MapelevenSearch search;
+
+  /// Road routing; see [showRoute] to draw the result.
+  final MapelevenRouter router;
 
   /// Current label language; kept in sync by [MapelevenMap].
   MapelevenLanguage language;
@@ -121,6 +127,7 @@ class MapelevenController {
   final _markerTaps = StreamController<MapelevenMarker>.broadcast();
   bool _styleReady = false;
   int _markerSeq = 0;
+  (MapelevenRoute, List<MapelevenRoute>)? _route;
   List<String> _poiLayers = const [];
 
   /// Emits when the user taps a marker.
@@ -248,6 +255,95 @@ class MapelevenController {
     await raw.removeSource(id).catchError((_) {});
   }
 
+  // ── Routes ────────────────────────────────────────────────────────────────
+
+  /// The route drawn by [showRoute], or null.
+  MapelevenRoute? get shownRoute => _route?.$1;
+
+  /// Draws [route] as a blue line under the markers, with [alternatives] in
+  /// grey, and fits it on screen unless [fit] is false. [padding] keeps the
+  /// route clear of panels over the map. Replaces any route already shown.
+  Future<void> showRoute(
+    MapelevenRoute route, {
+    List<MapelevenRoute> alternatives = const [],
+    bool fit = true,
+    ({double left, double top, double right, double bottom}) padding = (left: 48, top: 48, right: 48, bottom: 48),
+  }) async {
+    _route = (route, alternatives);
+    if (_styleReady) {
+      if (await _hasRouteLayers()) {
+        await raw.setGeoJsonSource(_routeSource, _routeGeoJson());
+      } else {
+        await _installRoute(below: '$_markersSource-pin');
+      }
+    }
+    if (!fit) return;
+    final b = [route, ...alternatives].map((r) => r.bounds).reduce(
+          (a, c) => LatLngBounds(
+            southwest: LatLng(min(a.southwest.latitude, c.southwest.latitude), min(a.southwest.longitude, c.southwest.longitude)),
+            northeast: LatLng(max(a.northeast.latitude, c.northeast.latitude), max(a.northeast.longitude, c.northeast.longitude)),
+          ),
+        );
+    await raw.animateCamera(
+      CameraUpdate.newLatLngBounds(b, left: padding.left, top: padding.top, right: padding.right, bottom: padding.bottom),
+    );
+  }
+
+  /// Removes the route drawn by [showRoute].
+  Future<void> clearRoute() async {
+    _route = null;
+    if (!_styleReady) return;
+    for (final id in const ['line', 'casing']) {
+      await raw.removeLayer('$_routeSource-$id').catchError((_) {});
+    }
+    await raw.removeSource(_routeSource).catchError((_) {});
+  }
+
+  Future<bool> _hasRouteLayers() async => (await raw.getLayerIds()).contains('$_routeSource-line');
+
+  Map<String, dynamic> _routeGeoJson() {
+    final (main, alts) = _route!;
+    Map<String, dynamic> feature(MapelevenRoute r, bool isMain) => {
+          'type': 'Feature',
+          'properties': {'main': isMain ? 1 : 0},
+          'geometry': (r.toGeoJson()['features'] as List).first['geometry'],
+        };
+    return {
+      'type': 'FeatureCollection',
+      'features': [for (final a in alts) feature(a, false), feature(main, true)],
+    };
+  }
+
+  Future<void> _installRoute({String? below}) async {
+    await raw.addGeoJsonSource(_routeSource, _routeGeoJson());
+    await raw.addLineLayer(
+      _routeSource,
+      '$_routeSource-casing',
+      const LineLayerProperties(
+        lineColor: ['case', ['==', ['get', 'main'], 1], '#1557B0', '#7D8590'],
+        lineWidth: ['interpolate', ['linear'], ['zoom'], 10, 6, 16, 11],
+        lineCap: 'round',
+        lineJoin: 'round',
+        lineSortKey: ['get', 'main'],
+      ),
+      belowLayerId: below,
+      enableInteraction: false,
+    );
+    await raw.addLineLayer(
+      _routeSource,
+      '$_routeSource-line',
+      const LineLayerProperties(
+        lineColor: ['case', ['==', ['get', 'main'], 1], '#4285F4', '#B8BEC6'],
+        lineWidth: ['interpolate', ['linear'], ['zoom'], 10, 4, 16, 8],
+        lineCap: 'round',
+        lineJoin: 'round',
+        lineSortKey: ['get', 'main'],
+      ),
+      belowLayerId: below,
+      enableInteraction: false,
+    );
+  }
+
   // ── Basemap places ────────────────────────────────────────────────────────
 
   /// The basemap point of interest under a screen [point] (from a tap), if any.
@@ -340,6 +436,7 @@ class MapelevenController {
     for (final MapEntry(key: name, value: (data, options)) in _layers.entries) {
       await _installLayer(name, data, options);
     }
+    if (_route != null) await _installRoute();
     await _installMarkers();
   }
 
@@ -350,6 +447,7 @@ class MapelevenController {
     raw.onFeatureTapped.remove(_onFeatureTapped);
     _markerTaps.close();
     search.close();
+    router.close();
   }
 
   Future<void> _installLayer(String name, Map<String, dynamic> data, MapelevenGeoJsonOptions o) async {

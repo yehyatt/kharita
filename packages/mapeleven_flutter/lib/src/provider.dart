@@ -23,6 +23,7 @@ class MapelevenProvider {
     required this.localizeOnClient,
     this.searchUrl,
     this.searchLanguages = const [],
+    this.routingUrl,
     this.fontStack = const ['Noto Sans Regular'],
     this.rtlPluginUrl = publicRtlPluginUrl,
     this.poiSource,
@@ -45,6 +46,7 @@ class MapelevenProvider {
       localizeOnClient: false,
       searchUrl: '$base/search',
       searchLanguages: const ['ar', 'en'],
+      routingUrl: '$base/routing',
       rtlPluginUrl: '$base/assets/rtl/mapbox-gl-rtl-text.js',
       poiSource: ('protomaps', 'pois'),
       // Overture places OSM lacks, on servers that run scripts/import-places.sh.
@@ -93,6 +95,9 @@ class MapelevenProvider {
 
   /// Languages the search index holds; others fall back to local names.
   final List<String> searchLanguages;
+
+  /// Valhalla-compatible routing endpoint without trailing slash, or null.
+  final String? routingUrl;
 
   /// Font stack served by the provider's glyph server, for SDK-drawn labels.
   final List<String> fontStack;

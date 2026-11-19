@@ -16,6 +16,8 @@ export interface MapelevenProvider {
   readonly searchUrl?: string;
   /** Languages the search index holds; others fall back to local names. */
   readonly searchLanguages: readonly string[];
+  /** Valhalla-compatible routing endpoint (no trailing slash), or undefined when there is none. */
+  readonly routingUrl?: string;
   /** Font stack available on the provider's glyph server, used for SDK-drawn labels. */
   readonly fontStack: string[];
   /** Script that shapes Arabic and Hebrew text in MapLibre GL JS. */
@@ -37,6 +39,7 @@ export function selfHosted(baseUrl: string, options: { key?: string } = {}): Map
     localizeOnClient: false,
     searchUrl: `${base}/search`,
     searchLanguages: ["ar", "en"],
+    routingUrl: `${base}/routing`,
     fontStack: ["Noto Sans Regular"],
     rtlPluginUrl: `${base}/assets/rtl/mapbox-gl-rtl-text.js`,
   };

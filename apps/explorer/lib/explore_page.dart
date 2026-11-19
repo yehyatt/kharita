@@ -37,6 +37,20 @@ class _Selection {
   final bool dropped;
 }
 
+/// Directions to a place: the start, the travel mode and the routes found.
+class _Trip {
+  _Trip({required this.to, required this.from, required this.fromLabel});
+  final SavedPlace to;
+  LatLng from;
+  String fromLabel;
+  MapelevenTravelMode mode = MapelevenTravelMode.car;
+  List<MapelevenRoute> routes = const [];
+  int chosen = 0;
+  bool loading = true;
+  String? error;
+  bool showSteps = false;
+}
+
 class ExplorePage extends StatefulWidget {
   const ExplorePage({super.key, required this.state});
   final AppState state;
@@ -48,6 +62,8 @@ class ExplorePage extends StatefulWidget {
 class ExplorePageState extends State<ExplorePage> {
   MapelevenController? _map;
   _Selection? _selected;
+  _Trip? _trip;
+  int _tripSeq = 0;
   String? _category;
   List<SavedPlace> _results = const [];
   bool _loadingCategory = false;
@@ -62,6 +78,9 @@ class ExplorePageState extends State<ExplorePage> {
   Future<void> _onMapReady(MapelevenController map) async {
     _map = map;
     await map.registerIcon(await MapelevenIcon.pin('selected', color: const Color(0xFFDC2626), icon: Icons.circle));
+    await map.registerIcon(
+      await MapelevenIcon.fromIconData('start', Icons.trip_origin, background: const Color(0xFF4285F4), size: 24),
+    );
     for (final (key, icon, _) in categories) {
       await map.registerIcon(await MapelevenIcon.fromIconData('cat-$key', icon, background: brand, size: 30));
     }
@@ -222,7 +241,89 @@ class ExplorePageState extends State<ExplorePage> {
     await _map?.flyTo(here, zoom: 16);
   }
 
+  /// Opens directions to [p] inside the app; other map apps when the
+  /// provider has no routing service.
   Future<void> _directions(SavedPlace p) async {
+    final map = _map;
+    if (map == null) return;
+    if (!map.router.available) return _directionsElsewhere(p);
+    var from = state.myLocation ?? await state.locate();
+    var label = s.yourLocation;
+    if (!mounted) return;
+    if (from == null) {
+      from = map.center ?? amman;
+      label = s.mapCentre;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.locationOff)));
+    }
+    setState(() => _trip = _Trip(to: p, from: from!, fromLabel: label));
+    await _loadRoute();
+  }
+
+  Future<void> _loadRoute() async {
+    final trip = _trip, map = _map;
+    if (trip == null || map == null) return;
+    final seq = ++_tripSeq;
+    setState(() {
+      trip.loading = true;
+      trip.error = null;
+    });
+    await map.addMarker(trip.from, id: 'route-start', icon: 'start');
+    try {
+      final routes = await map.router.route(
+        [trip.from, trip.to.position],
+        mode: trip.mode,
+        language: state.language,
+        alternatives: 2,
+      );
+      if (!mounted || seq != _tripSeq) return;
+      setState(() {
+        trip.routes = routes;
+        trip.chosen = 0;
+        trip.loading = false;
+      });
+      await _drawRoute();
+    } catch (e) {
+      if (!mounted || seq != _tripSeq) return;
+      setState(() {
+        trip.routes = const [];
+        trip.loading = false;
+        trip.error = e is MapelevenRoutingException && e.noRoute ? s.noRoute : s.routeFailed;
+      });
+      await map.clearRoute();
+    }
+  }
+
+  Future<void> _drawRoute() async {
+    final trip = _trip;
+    if (trip == null || trip.routes.isEmpty) return;
+    final size = MediaQuery.sizeOf(context);
+    await _map?.showRoute(
+      trip.routes[trip.chosen],
+      alternatives: [for (final (i, r) in trip.routes.indexed) if (i != trip.chosen) r],
+      padding: (left: 40, top: MediaQuery.paddingOf(context).top + 140, right: 40, bottom: size.height * 0.36),
+    );
+  }
+
+  Future<void> _closeTrip() async {
+    _tripSeq++;
+    setState(() => _trip = null);
+    await _map?.clearRoute();
+    await _map?.removeMarker('route-start');
+  }
+
+  Future<void> _chooseStart() async {
+    final map = _map, trip = _trip;
+    if (map == null || trip == null) return;
+    final result = await Navigator.of(context).push<SearchResult>(
+      MaterialPageRoute(builder: (_) => SearchPage(state: state, search: map.search, near: map.center ?? amman)),
+    );
+    if (result == null || _trip != trip) return;
+    trip.from = result.place.position;
+    trip.fromLabel = result.place.name;
+    await _loadRoute();
+  }
+
+  Future<void> _directionsElsewhere(SavedPlace p) async {
     final lat = p.position.latitude, lng = p.position.longitude;
     final uri = kIsWeb
         ? Uri.parse('https://www.openstreetmap.org/directions?to=$lat%2C$lng')
@@ -250,12 +351,28 @@ class ExplorePageState extends State<ExplorePage> {
       listenable: state,
       builder: (context, _) {
         final selected = _selected;
-        final hasSheet = selected != null || _category != null;
+        final trip = _trip;
+        final hasSheet = selected != null || _category != null || trip != null;
         final sheetH = hasSheet ? _sheetHeight : 0.0;
         final top = MediaQuery.paddingOf(context).top;
         final rtl = s.ar;
         Widget? sheet;
-        if (selected != null) {
+        if (trip != null) {
+          sheet = _DirectionsSheet(
+            trip: trip,
+            s: s,
+            onMode: (m) {
+              trip.mode = m;
+              _loadRoute();
+            },
+            onChoose: (i) {
+              setState(() => trip.chosen = i);
+              _drawRoute();
+            },
+            onToggleSteps: () => setState(() => trip.showSteps = !trip.showSteps),
+            onClose: _closeTrip,
+          );
+        } else if (selected != null) {
           sheet = _PlaceSheet(
             selection: selected,
             s: s,
@@ -301,7 +418,7 @@ class ExplorePageState extends State<ExplorePage> {
                 onPoiTap: _onPoiTap,
                 onLongPress: _dropPin,
                 onTap: (_) {
-                  if (_selected != null) _clear();
+                  if (_selected != null && _trip == null) _clear();
                 },
                 compassPosition: kIsWeb ? null : (rtl ? CompassViewPosition.topLeft : CompassViewPosition.topRight),
                 compassMargins: math.Point(18, top + 176),
@@ -313,8 +430,15 @@ class ExplorePageState extends State<ExplorePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 0), child: _searchBar()),
-                  SizedBox(height: 52, child: _chips()),
+                  if (trip != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                      child: _TripHeader(trip: trip, s: s, onBack: _closeTrip, onFrom: _chooseStart),
+                    )
+                  else ...[
+                    Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 0), child: _searchBar()),
+                    SizedBox(height: 52, child: _chips()),
+                  ],
                   Align(
                     alignment: AlignmentDirectional.centerEnd,
                     child: Padding(
@@ -729,3 +853,210 @@ class _ResultsSheet extends StatelessWidget {
     );
   }
 }
+
+/// From and To, above the map while directions are open.
+class _TripHeader extends StatelessWidget {
+  const _TripHeader({required this.trip, required this.s, required this.onBack, required this.onFrom});
+  final _Trip trip;
+  final S s;
+  final VoidCallback onBack, onFrom;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(IconData icon, Color color, String label, String text, VoidCallback? onTap) => InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(color: const Color(0xFFF1F3F4), borderRadius: BorderRadius.circular(10)),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 10),
+            Text('$label  ', style: const TextStyle(color: Colors.black54)),
+            Expanded(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+      ),
+    );
+    return Material(
+      elevation: 3,
+      shadowColor: Colors.black38,
+      borderRadius: BorderRadius.circular(18),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(4, 8, 12, 8),
+        child: Row(
+          children: [
+            IconButton(icon: const BackButtonIcon(), onPressed: onBack),
+            Expanded(
+              child: Column(
+                children: [
+                  row(Icons.trip_origin, const Color(0xFF4285F4), s.from, trip.fromLabel, onFrom),
+                  const SizedBox(height: 6),
+                  row(Icons.place, const Color(0xFFDC2626), s.to, trip.to.name, null),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DirectionsSheet extends StatelessWidget {
+  const _DirectionsSheet({
+    required this.trip,
+    required this.s,
+    required this.onMode,
+    required this.onChoose,
+    required this.onToggleSteps,
+    required this.onClose,
+  });
+
+  final _Trip trip;
+  final S s;
+  final void Function(MapelevenTravelMode) onMode;
+  final void Function(int) onChoose;
+  final VoidCallback onToggleSteps, onClose;
+
+  static const _modeIcons = {
+    MapelevenTravelMode.car: Icons.directions_car,
+    MapelevenTravelMode.walk: Icons.directions_walk,
+    MapelevenTravelMode.bike: Icons.directions_bike,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final route = trip.routes.isEmpty ? null : trip.routes[trip.chosen];
+    return _Sheet(
+      onSwipeDown: trip.showSteps ? onToggleSteps : onClose,
+      onSwipeUp: trip.showSteps || route == null ? null : onToggleSteps,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 12, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final m in MapelevenTravelMode.values)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 8),
+                            child: ChoiceChip(
+                              avatar: Icon(_modeIcons[m], size: 18, color: trip.mode == m ? Colors.white : brand),
+                              label: Text(s.travelMode(m)),
+                              selected: trip.mode == m,
+                              showCheckmark: false,
+                              selectedColor: brand,
+                              labelStyle: TextStyle(color: trip.mode == m ? Colors.white : Colors.black87),
+                              onSelected: (_) => onMode(m),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                IconButton.filledTonal(
+                  icon: const Icon(Icons.close, size: 20),
+                  style: IconButton.styleFrom(backgroundColor: const Color(0xFFF1F3F4)),
+                  onPressed: onClose,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (trip.loading) ...[
+              const LinearProgressIndicator(minHeight: 2),
+              Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(s.routing)),
+            ] else if (trip.error != null)
+              Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(trip.error!))
+            else if (route != null) ...[
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: s.duration(route.duration),
+                      style: text.headlineSmall?.copyWith(color: const Color(0xFF188038), fontWeight: FontWeight.w600),
+                    ),
+                    TextSpan(text: '  (${s.km(route.distanceMeters / 1000)})', style: text.titleMedium),
+                  ],
+                ),
+              ),
+              Text(s.noTraffic, style: text.bodySmall?.copyWith(color: Colors.black54)),
+              if (trip.routes.length > 1) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final (i, r) in trip.routes.indexed)
+                      ChoiceChip(
+                        label: Text('${s.routeN(i + 1)} · ${s.duration(r.duration)}'),
+                        selected: trip.chosen == i,
+                        onSelected: (_) => onChoose(i),
+                      ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 4),
+              TextButton.icon(
+                onPressed: onToggleSteps,
+                icon: Icon(trip.showSteps ? Icons.expand_more : Icons.format_list_bulleted),
+                label: Text(s.steps),
+              ),
+              if (trip.showSteps)
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.38),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: route.steps.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1, indent: 56),
+                    itemBuilder: (context, i) {
+                      final step = route.steps[i];
+                      return ListTile(
+                        dense: true,
+                        // Arrows must point the real way, so they are never mirrored in Arabic.
+                        leading: Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Icon(_maneuverIcon(step.maneuver), color: Colors.black87),
+                        ),
+                        title: Text(step.instruction, style: text.bodyMedium),
+                        subtitle: step.distanceMeters > 0 ? Text(s.km(step.distanceMeters / 1000)) : null,
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+IconData _maneuverIcon(MapelevenManeuver m) => switch (m) {
+  MapelevenManeuver.start => Icons.trip_origin,
+  MapelevenManeuver.arrive => Icons.place,
+  MapelevenManeuver.continueStraight => Icons.straight,
+  MapelevenManeuver.slightRight => Icons.turn_slight_right,
+  MapelevenManeuver.right => Icons.turn_right,
+  MapelevenManeuver.sharpRight => Icons.turn_sharp_right,
+  MapelevenManeuver.uTurn => Icons.u_turn_left,
+  MapelevenManeuver.sharpLeft => Icons.turn_sharp_left,
+  MapelevenManeuver.left => Icons.turn_left,
+  MapelevenManeuver.slightLeft => Icons.turn_slight_left,
+  MapelevenManeuver.rampRight || MapelevenManeuver.exitRight => Icons.ramp_right,
+  MapelevenManeuver.rampLeft || MapelevenManeuver.exitLeft => Icons.ramp_left,
+  MapelevenManeuver.keepRight => Icons.fork_right,
+  MapelevenManeuver.keepLeft => Icons.fork_left,
+  MapelevenManeuver.merge => Icons.merge,
+  MapelevenManeuver.roundabout => Icons.roundabout_right,
+  MapelevenManeuver.ferry => Icons.directions_boat,
+  MapelevenManeuver.other => Icons.straight,
+};

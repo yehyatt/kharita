@@ -17,11 +17,11 @@ Requests without a key keep working, with searches limited per IP.
 - A CDN in front of the tiles, uptime monitoring.
 - A hosted style editor (Maputnik) saving custom styles to your account.
 
-## v0.5: routing and offline
+## v0.5: offline and more routing
 
+- Road routing for car, walking and bicycle with Valhalla: done early, see [routing](routing.md).
 - Offline regions: download a bounding box for use without a connection (MapLibre offline packs on Flutter, PMTiles file on web).
-- Routing with [Valhalla](https://github.com/valhalla/valhalla) on the server: car, walking, cycling; route line drawing in the SDK.
-- Isochrones ("everything within 10 minutes") and distance matrices, also from Valhalla.
+- Isochrones and distance matrices from the same Valhalla server.
 - Native iOS (Swift) and Android (Kotlin) packages on the same server.
 
 ## Later

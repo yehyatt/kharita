@@ -13,6 +13,7 @@ The Mapeleven server is one Docker Compose stack: vector tiles, styles, fonts, i
 | `/styles/{theme}-{lang}.json` | MapLibre styles, 5 themes in Arabic and English | `styles/build.mjs` |
 | `/assets/fonts`, `/assets/sprites`, `/assets/rtl` | Glyphs (Arabic included), icons, RTL plugin | Protomaps basemaps assets |
 | `/search/api`, `/search/reverse` | Search and reverse geocoding | Photon |
+| `/routing/route?json=...` | Road routes for car, walking and bicycle (optional) | Valhalla |
 
 ## Requirements
 
@@ -34,6 +35,7 @@ docker compose up -d              # Caddy + tiles
 docker compose --profile search up -d
 
 ./scripts/import-places.sh        # optional: Overture places OpenStreetMap lacks (map + search)
+./scripts/import-routing.sh       # optional: road routing (car, walking, bicycle)
 ```
 
 `import-places.sh` adds shops, restaurants, clinics and other places from [Overture Maps](https://overturemaps.org) (Apache 2.0 and CDLA Permissive 2.0) that OpenStreetMap does not have yet, for the countries in `OVERTURE_COUNTRIES`. Places OSM already has, low-confidence or closed places, and nightlife, alcohol, gambling and adult categories are left out. They get their own map layer and join the search index; OSM data is not changed.
@@ -68,11 +70,12 @@ OpenStreetMap changes every day. Re-run monthly (or weekly):
 ./scripts/extract-tiles.sh && docker compose restart tiles
 ./scripts/import-search.sh && docker compose --profile search up -d
 ./scripts/import-places.sh        # if you use Overture places
+./scripts/import-routing.sh       # if you use routing
 ```
 
 The scripts build the new data first and swap it in, so the server keeps answering during the update.
 
-To do this automatically, `scripts/refresh.sh` runs all three in order (it also pulls the latest scripts with `git pull`). Schedule it once with:
+To do this automatically, `scripts/refresh.sh` runs them all in order (it also pulls the latest scripts with `git pull`). Schedule it once with:
 
 ```bash
 sudo ./scripts/install-refresh.sh   # 02:00 UTC on the 20th of each month

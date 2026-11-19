@@ -11,6 +11,7 @@ import { localizeStyle } from "./localize";
 import { openFreeMap, type MapelevenLanguage, type MapelevenProvider, type MapelevenTheme } from "./provider";
 import { ensureRtlPlugin } from "./rtl";
 import { MapelevenSearch } from "./search";
+import { MapelevenRouter, type MapelevenRoute } from "./routing";
 
 export interface MapelevenMapOptions {
   /** Defaults to OpenFreeMap (development use). */
@@ -62,12 +63,15 @@ export interface GeoJSONLayerHandle {
 
 const PREFIX = "mapeleven-";
 const DEFAULT_COLOR = "#0066FF";
+const ROUTE = `${PREFIX}route`;
 
 /** A map with sensible defaults: labels in the page language (Arabic or English), attribution, RTL shaping, theme and language switching. */
 export class MapelevenMap {
   /** The underlying MapLibre map, for anything Mapeleven does not wrap. */
   readonly map: maplibregl.Map;
   readonly search: MapelevenSearch;
+  /** Road routing; `showRoute` draws the result. */
+  readonly router: MapelevenRouter;
   readonly provider: MapelevenProvider;
   /** Resolves when the first style has loaded. */
   readonly ready: Promise<void>;
@@ -97,6 +101,7 @@ export class MapelevenMap {
       attributionControl: { compact: true },
     });
     this.search = new MapelevenSearch(this.provider);
+    this.router = new MapelevenRouter(this.provider);
 
     const c = { navigation: true, locate: true, scale: false, fullscreen: false, ...options.controls };
     const side = this._language === "ar" ? "top-left" : "top-right";
@@ -254,6 +259,60 @@ export class MapelevenMap {
         if (this.map.getSource(id)) this.map.removeSource(id);
       },
     };
+  }
+
+  /**
+   * Draw `route` as a blue line, with `alternatives` in grey, and fit it on screen unless `fit` is false.
+   * Replaces any route already shown.
+   */
+  showRoute(
+    route: MapelevenRoute,
+    options: { alternatives?: MapelevenRoute[]; fit?: boolean; padding?: number | maplibregl.PaddingOptions } = {},
+  ): void {
+    const alts = options.alternatives ?? [];
+    const data: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features: [...alts.map((r) => [r, 0] as const), [route, 1] as const].map(([r, main]) => ({
+        type: "Feature",
+        properties: { main },
+        geometry: { type: "LineString", coordinates: r.coordinates },
+      })),
+    };
+    const id = ROUTE;
+    const draw = () => {
+      const source = this.map.getSource(id) as GeoJSONSource | undefined;
+      if (source) return source.setData(data);
+      this.map.addSource(id, { type: "geojson", data });
+      const isMain: maplibregl.ExpressionSpecification = ["==", ["get", "main"], 1];
+      for (const [suffix, colors, width] of [
+        ["casing", ["#1557B0", "#7D8590"], [6, 11]],
+        ["line", ["#4285F4", "#B8BEC6"], [4, 8]],
+      ] as const) {
+        this.map.addLayer({
+          id: `${id}-${suffix}`, type: "line", source: id,
+          layout: { "line-cap": "round", "line-join": "round", "line-sort-key": ["get", "main"] },
+          paint: {
+            "line-color": ["case", isMain, colors[0], colors[1]],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 10, width[0], 16, width[1]],
+          },
+        });
+      }
+    };
+    if (this.styleReady) draw();
+    else void this.ready.then(draw);
+    if (options.fit === false) return;
+    const boxes = [route, ...alts].map((r) => r.bbox);
+    const bbox: [number, number, number, number] = [
+      Math.min(...boxes.map((b) => b[0])), Math.min(...boxes.map((b) => b[1])),
+      Math.max(...boxes.map((b) => b[2])), Math.max(...boxes.map((b) => b[3])),
+    ];
+    this.map.fitBounds(bbox, { padding: options.padding ?? 48 });
+  }
+
+  /** Remove the route drawn by `showRoute`. */
+  clearRoute(): void {
+    for (const suffix of ["line", "casing"]) if (this.map.getLayer(`${ROUTE}-${suffix}`)) this.map.removeLayer(`${ROUTE}-${suffix}`);
+    if (this.map.getSource(ROUTE)) this.map.removeSource(ROUTE);
   }
 
   destroy(): void {
