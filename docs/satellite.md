@@ -72,6 +72,35 @@ customImagery({ tiles: ["https://imagery.example.com/{z}/{x}/{y}.jpg"], attribut
 
 Labels switch to white text on a dark outline, roads become light lines you can see through, and land, water and building fills are left out so the photo shows. Labels follow the map's language as usual.
 
+## Get an Esri key
+
+1. Sign up for a free ArcGIS Location Platform account at [location.arcgis.com/sign-up](https://location.arcgis.com/sign-up/).
+2. At [developers.arcgis.com](https://developers.arcgis.com/), open **Content**, then **New item**, then **Developer credentials**.
+3. Choose **Public application**. The two private options give access to your whole account and must never ship in an app or website.
+4. Keep **No item access**, and under location services tick **Basemaps** only.
+5. Pick an expiry date and note it: imagery stops loading when the key expires, until you create a new one.
+6. Copy the key when it is shown. Keep it in your app's configuration or build settings, not in your source repository.
+
 ## Keys in apps
 
-Like your Mapeleven key, an imagery key ends up inside your app. Restrict it where the provider allows: Esri and MapTiler both let you limit a key to your websites (HTTP referrers), and set a monthly budget or usage alert in their dashboard.
+An imagery key ends up inside your app or web page, where anyone can read it. Make two keys:
+
+| Key | Use it in | Referrers |
+|---|---|---|
+| Web key | Your website | Your domain, for example `https://example.com` |
+| App key | Your Flutter iOS and Android builds | None |
+
+Native apps do not send a website address with their requests, so a key limited to referrers may stop working in them. Keeping the app key separate means a referrer limit on the web key never breaks your app, and the provider's usage page shows web and app use apart.
+
+A referrer limit stops casual reuse of your key, but a determined person can fake the header. To avoid surprise bills, set a usage alert in the provider's dashboard, and check in your account's billing settings what happens when you pass the free allowance.
+
+In Flutter, pass the key at build time rather than writing it in code:
+
+```bash
+flutter build ios --dart-define=ESRI_KEY=...
+```
+
+```dart
+const esriKey = String.fromEnvironment('ESRI_KEY');
+// imagery: satellite && esriKey.isNotEmpty ? MapelevenImagery.esri(esriKey) : null,
+```
