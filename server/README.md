@@ -29,6 +29,7 @@ docker compose up -d              # tiles + styles
 
 ./scripts/import-search.sh        # optional: Photon index for PHOTON_REGIONS (ar + en)
 docker compose --profile search up -d
+./scripts/import-places.sh        # optional: Overture places OSM lacks (OVERTURE_COUNTRIES)
 ```
 
 Point a DNS A record for `DOMAIN` at the server before starting Caddy.

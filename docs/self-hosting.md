@@ -32,7 +32,11 @@ docker compose up -d              # Caddy + tiles
 
 ./scripts/import-search.sh        # search index for PHOTON_REGIONS, Arabic and English (needs zstd)
 docker compose --profile search up -d
+
+./scripts/import-places.sh        # optional: Overture places OpenStreetMap lacks (map + search)
 ```
+
+`import-places.sh` adds shops, restaurants, clinics and other places from [Overture Maps](https://overturemaps.org) (Apache 2.0 and CDLA Permissive 2.0) that OpenStreetMap does not have yet, for the countries in `OVERTURE_COUNTRIES`. Places OSM already has, low-confidence or closed places, and nightlife, alcohol, gambling and adult categories are left out. They get their own map layer and join the search index; OSM data is not changed.
 
 On Hetzner Cloud, `server/scripts/hetzner-create.sh` creates the server, firewall and SSH key, and `server/cloud-init.yaml` installs Docker and clones the repository on first boot.
 
@@ -63,9 +67,10 @@ OpenStreetMap changes every day. Re-run monthly (or weekly):
 ```bash
 ./scripts/extract-tiles.sh && docker compose restart tiles
 ./scripts/import-search.sh && docker compose --profile search up -d
+./scripts/import-places.sh        # if you use Overture places
 ```
 
-Both scripts build the new data first and swap it in, so the server keeps answering during the update.
+The scripts build the new data first and swap it in, so the server keeps answering during the update.
 
 ## Attribution
 

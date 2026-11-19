@@ -12,13 +12,15 @@ Standard library only. Usage:
 
 import json
 import math
+import os
 import re
 import subprocess
 import sys
 import unicodedata
 from collections import Counter, defaultdict
 
-COUNTRIES = {"JO", "SA", "AE", "QA", "KW", "BH", "OM", "YE"}
+# Countries to keep (ISO codes), the ones your search index covers.
+COUNTRIES = set(os.environ.get("OVERTURE_COUNTRIES", "JO SA AE QA KW BH OM YE").split())
 MIN_CONFIDENCE = 0.5  # search
 MAP_CONFIDENCE = 0.6  # map points: categorised places only, a bit stricter
 
