@@ -19,6 +19,11 @@ for region in ${PHOTON_REGIONS}; do
   if [ "$first" = 1 ]; then zstd -dc "$file" >> merged.jsonl; first=0
   else zstd -dc "$file" | tail -n +3 >> merged.jsonl; fi
 done
+# Overture places that OSM lacks (scripts/import-places.sh), if built.
+if [ -f ../places/overture-photon.jsonl ]; then
+  cat ../places/overture-photon.jsonl >> merged.jsonl
+  echo "Added $(wc -l < ../places/overture-photon.jsonl) Overture places"
+fi
 echo "Merged $(grep -c '"type":"Place"' merged.jsonl) places from: ${PHOTON_REGIONS}"
 
 # Build into a separate directory, then swap it in, so a running server keeps

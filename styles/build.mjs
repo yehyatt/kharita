@@ -9,6 +9,8 @@ const arg = (name, fallback) =>
 const baseUrl = arg("base-url", "http://localhost:8080").replace(/\/$/, "");
 const tiles = arg("tiles", "mena");
 const out = arg("out", "dist");
+// --overture adds the places layer built by server/scripts/import-places.sh.
+const overture = process.argv.includes("--overture");
 
 export const THEMES = ["light", "dark", "white", "grayscale", "black"];
 export const LANGUAGES = ["ar", "en"];
@@ -39,6 +41,22 @@ function widenPois(layerList) {
   return layerList;
 }
 
+const OVERTURE_ATTRIBUTION = '<a href="https://overturemaps.org">Overture Maps</a>';
+
+/** Same look as the OSM `pois` layer, for Overture places OSM lacks. Unknown kinds get the generic dot. */
+function overtureLayer(layerList) {
+  const pois = layerList.find((l) => l.id === "pois");
+  if (!pois) return layerList; // flavours without place icons (white, grayscale, black)
+  const layer = structuredClone(pois);
+  layer.id = "pois-overture";
+  layer.source = "overture";
+  layer.filter = [">=", ["zoom"], ["get", "min_zoom"]];
+  const icon = layer.layout["icon-image"];
+  icon[icon.length - 1] = ["case", ["==", ["get", "kind"], "other"], "townspot", ["get", "kind"]];
+  layerList.splice(layerList.indexOf(pois) + 1, 0, layer);
+  return layerList;
+}
+
 mkdirSync(out, { recursive: true });
 for (const theme of THEMES) {
   for (const lang of LANGUAGES) {
@@ -49,8 +67,9 @@ for (const theme of THEMES) {
       sprite: `${baseUrl}/assets/sprites/v4/${theme}`,
       sources: {
         protomaps: { type: "vector", url: `${baseUrl}/tiles/${tiles}.json`, attribution: ATTRIBUTION },
+        ...(overture && { overture: { type: "vector", url: `${baseUrl}/tiles/overture.json`, attribution: OVERTURE_ATTRIBUTION } }),
       },
-      layers: widenPois(layers("protomaps", namedFlavor(theme), { lang })),
+      layers: (overture ? overtureLayer : (l) => l)(widenPois(layers("protomaps", namedFlavor(theme), { lang }))),
     };
     writeFileSync(`${out}/${theme}-${lang}.json`, JSON.stringify(style));
   }

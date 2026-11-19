@@ -285,7 +285,11 @@ class MapelevenController {
     final source = provider.poiSource;
     if (!_styleReady || source == null) return visiblePois(limit: limit);
     final bounds = await raw.getVisibleRegion();
-    final features = await raw.querySourceFeatures(source.$1, source.$2, null);
+    final features = [
+      ...await raw.querySourceFeatures(source.$1, source.$2, null),
+      for (final (id, layer) in provider.extraPoiSources)
+        ...await raw.querySourceFeatures(id, layer, null).catchError((_) => <dynamic>[]),
+    ];
     final seen = <String>{};
     final pois = <MapelevenPoi>[];
     for (final f in features) {

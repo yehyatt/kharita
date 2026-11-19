@@ -26,6 +26,7 @@ class MapelevenProvider {
     this.fontStack = const ['Noto Sans Regular'],
     this.rtlPluginUrl = publicRtlPluginUrl,
     this.poiSource,
+    this.extraPoiSources = const [],
     this.key,
   });
 
@@ -46,6 +47,8 @@ class MapelevenProvider {
       searchLanguages: const ['ar', 'en'],
       rtlPluginUrl: '$base/assets/rtl/mapbox-gl-rtl-text.js',
       poiSource: ('protomaps', 'pois'),
+      // Overture places OSM lacks, on servers that run scripts/import-places.sh.
+      extraPoiSources: const [('overture', 'pois')],
     );
   }
 
@@ -100,6 +103,10 @@ class MapelevenProvider {
   /// Vector source and source-layer that hold points of interest, for
   /// [MapelevenController.nearbyPois]. Null when unknown.
   final (String, String)? poiSource;
+
+  /// More vector sources with points of interest, read by
+  /// [MapelevenController.nearbyPois] when the style has them.
+  final List<(String, String)> extraPoiSources;
 
   String styleUrl(MapelevenTheme theme, MapelevenLanguage language) => styleUrlBuilder(theme, language);
 }
