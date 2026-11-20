@@ -110,6 +110,51 @@ class S {
     'لم نتمكن من تحديد موقعك. فعّل خدمة الموقع ثم حاول مرة أخرى.',
     "Couldn't get your location. Turn on location services and try again.",
   );
+  // Position by hand and compass (for when GPS is off or wrong)
+  String get imHere => _('أنا هنا', "I'm here");
+  String get compass => _('البوصلة', 'Compass');
+  String get setByHand => _('حدده بنفسك', 'Set it by hand');
+  String get pickHint => _(
+    'اضغط على معلم تراه قربك: دوار، مسجد، محطة وقود…',
+    'Tap a landmark you can see near you: a roundabout, a mosque, a petrol station…',
+  );
+  String get cancel => _('إلغاء', 'Cancel');
+  String get change => _('تغيير', 'Change');
+  String get pickedPoint => _('النقطة التي اخترتها', 'The point you picked');
+  String hereSet(String name) => _('موقعك الآن: $name. المسافات والاتجاهات تبدأ من هنا.', 'You are at $name. Distances and directions start here.');
+  String youSetHere(String name) => _('موقعك (حددته بنفسك): $name', 'Your position (set by you): $name');
+  String straightLine(String d) => _('$d بخط مستقيم', '$d in a straight line');
+  String get fromGps => _('من موقعك على GPS (يتحدث)', 'From your GPS position (live)');
+  String fromManual(String name) => _('نقطة البداية: $name، وقد حددتها بنفسك', 'From $name, which you set');
+  String get fromCentre => _('من وسط الخريطة. حدد موقعك لنتيجة أدق.', 'From the map centre. Set your position for a better answer.');
+  String get turnHint => _('استدر حتى يشير السهم إلى الأمام، ثم امشِ باستقامة.', 'Turn until the arrow points ahead, then walk straight.');
+  String get facingIt => _('أنت متجه نحوه', "You're facing it");
+  String get calibrate => _(
+    'قد تكون البوصلة غير دقيقة: حرّك الهاتف على شكل رقم 8، وابتعد عن السيارات والحديد.',
+    'The compass may be off: move the phone in a figure 8, away from cars and metal.',
+  );
+  String noCompass(String dir, int deg) => _(
+    'لا توجد بوصلة في هذا الجهاز. ببوصلة يدوية، اتجه نحو $dir (${_deg(deg)}) وامشِ.',
+    'This device has no compass. With a hand compass, face $dir ($deg°) and walk.',
+  );
+  String get compassNote => _(
+    'البوصلة تعمل بلا إنترنت ولا GPS. أعلى الخريطة الورقية هو الشمال.',
+    'The compass works without internet or GPS. The top of a paper map is north.',
+  );
+  /// Degrees kept left-to-right inside Arabic text, so the sign stays after the number.
+  String _deg(int d) => '\u2066$d°\u2069';
+  String head(String dir, int deg) => _('باتجاه $dir (${_deg(deg)})', 'Head $dir ($deg°)');
+
+  String cardinal(double deg) {
+    final i = ((deg % 360) / 45).round() % 8;
+    return ar
+        ? const ['الشمال', 'الشمال الشرقي', 'الشرق', 'الجنوب الشرقي', 'الجنوب', 'الجنوب الغربي', 'الغرب', 'الشمال الغربي'][i]
+        : const ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'][i];
+  }
+
+  /// Compass letters: N, E, S, W.
+  List<String> get compassPoints => ar ? const ['ش', 'شر', 'ج', 'غ'] : const ['N', 'E', 'S', 'W'];
+
   String get poweredBy =>
       _('خرائط مفتوحة من OpenStreetMap عبر Mapeleven', 'Open maps from OpenStreetMap via Mapeleven');
   String km(double v) => v < 1

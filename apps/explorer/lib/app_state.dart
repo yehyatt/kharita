@@ -80,6 +80,15 @@ class AppState extends ChangeNotifier {
   final List<SavedPlace> saved = [];
   final List<SavedPlace> recent = [];
   LatLng? myLocation;
+
+  /// A position set by hand (tapping a landmark the user can see), for when
+  /// GPS is off, jammed or wrong. It wins over GPS until cleared or until the
+  /// user asks GPS again and it answers.
+  SavedPlace? manualHere;
+  DateTime? manualHereAt;
+
+  /// Where distances and directions start: the hand-set position, else GPS.
+  LatLng? get here => manualHere?.position ?? myLocation;
   SharedPreferences? _prefs;
 
   Future<void> load() async {
@@ -91,6 +100,12 @@ class AppState extends ChangeNotifier {
       satellite = imagery != null && (p.getBool('satellite') ?? false);
       saved.addAll(_decode(p.getString('saved')));
       recent.addAll(_decode(p.getString('recent')));
+      final manual = p.getString('manualHere');
+      if (manual != null) {
+        final j = jsonDecode(manual) as Map<String, dynamic>;
+        manualHere = SavedPlace.fromJson(j['place'] as Map<String, dynamic>);
+        manualHereAt = DateTime.tryParse(j['at'] as String? ?? '');
+      }
     } catch (_) {
       // Storage unavailable (private browsing): run with defaults.
     }
@@ -124,6 +139,21 @@ class AppState extends ChangeNotifier {
     _prefs?.setString('recent', jsonEncode(recent));
   }
 
+  void setManualHere(SavedPlace place) {
+    manualHere = place;
+    manualHereAt = DateTime.now();
+    myLocation = null;
+    _prefs?.setString('manualHere', jsonEncode({'place': place, 'at': manualHereAt!.toIso8601String()}));
+    notifyListeners();
+  }
+
+  void clearManualHere() {
+    manualHere = null;
+    manualHereAt = null;
+    _prefs?.remove('manualHere');
+    notifyListeners();
+  }
+
   /// Asks for permission if needed and returns the current position, or null.
   Future<LatLng?> locate() async {
     try {
@@ -135,6 +165,7 @@ class AppState extends ChangeNotifier {
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 10)),
       );
       myLocation = LatLng(pos.latitude, pos.longitude);
+      if (manualHere != null) clearManualHere();
       notifyListeners();
       return myLocation;
     } catch (_) {

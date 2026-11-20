@@ -42,6 +42,7 @@ dependencies:
     path: ../../packages/mapeleven_flutter
   flutter_localizations:
     sdk: flutter
+  flutter_compass: ^0.8.1
 
 dev_dependencies:
   flutter_test:

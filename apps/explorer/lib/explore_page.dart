@@ -8,6 +8,7 @@ import 'package:mapeleven/mapeleven.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_state.dart';
+import 'compass_page.dart';
 import 'contribute_page.dart';
 import 'main.dart';
 import 'search_page.dart';
@@ -69,6 +70,10 @@ class ExplorePageState extends State<ExplorePage> {
   bool _loadingCategory = false;
   int _selectSeq = 0;
 
+  /// True while the next map tap sets the user's position by hand.
+  bool _picking = false;
+  DateTime _pickingSince = DateTime(0);
+
   AppState get state => widget.state;
   S get s => S(state.language);
 
@@ -81,6 +86,10 @@ class ExplorePageState extends State<ExplorePage> {
     await map.registerIcon(
       await MapelevenIcon.fromIconData('start', Icons.trip_origin, background: const Color(0xFF4285F4), size: 24),
     );
+    await map.registerIcon(
+      await MapelevenIcon.fromIconData('me', Icons.person_pin_circle, background: const Color(0xFFEA580C), size: 30),
+    );
+    await _showHere();
     for (final (key, icon, _) in categories) {
       await map.registerIcon(await MapelevenIcon.fromIconData('cat-$key', icon, background: brand, size: 30));
     }
@@ -145,10 +154,58 @@ class ExplorePageState extends State<ExplorePage> {
     ),
   );
 
-  void _onPoiTap(MapelevenPoi poi) => _select(
-    SavedPlace(name: poi.name, address: '', position: poi.position, kind: poi.kind),
-    lookUpAddress: true,
-    fly: false,
+  void _onPoiTap(MapelevenPoi poi) {
+    final place = SavedPlace(name: poi.name, address: '', position: poi.position, kind: poi.kind);
+    if (_picking) {
+      _setHere(place);
+      return;
+    }
+    _select(place, lookUpAddress: true, fly: false);
+  }
+
+  // ── Position by hand (GPS off, jammed or wrong) ───────────────────────────
+
+  /// Shows or hides the marker for a hand-set position.
+  Future<void> _showHere() async {
+    final map = _map, manual = state.manualHere;
+    if (map == null) return;
+    if (manual == null) {
+      await map.removeMarker('me');
+    } else {
+      await map.addMarker(manual.position, id: 'me', icon: 'me');
+    }
+  }
+
+  Future<void> _setHere(SavedPlace place) async {
+    final named = place.name.isEmpty ? SavedPlace(name: s.pickedPoint, address: '', position: place.position) : place;
+    state.setManualHere(named);
+    setState(() => _picking = false);
+    await _clear();
+    await _showHere();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(s.hereSet(named.name)),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 48),
+      ),
+    );
+  }
+
+  Future<void> _startPicking() async {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    await _clear();
+    _pickingSince = DateTime.now();
+    setState(() => _picking = true);
+  }
+
+  Future<void> _clearHere() async {
+    state.clearManualHere();
+    await _showHere();
+  }
+
+  Future<void> _openCompass(SavedPlace target) => Navigator.of(context).push(
+    MaterialPageRoute(builder: (_) => CompassPage(state: state, target: target, mapCentre: _map?.center ?? amman)),
   );
 
   Future<void> _clear() async {
@@ -232,12 +289,25 @@ class ExplorePageState extends State<ExplorePage> {
   }
 
   Future<void> _locate() async {
+    final hadManual = state.manualHere != null;
     final here = await state.locate();
     if (!mounted) return;
     if (here == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.locationOff)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(s.locationOff),
+          duration: const Duration(seconds: 8),
+          // Floating and lifted, clear of the map credit at the bottom.
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 48),
+          action: SnackBarAction(label: s.setByHand, onPressed: _startPicking),
+        ),
+      );
+      final manual = state.manualHere;
+      if (manual != null) await _map?.flyTo(manual.position, zoom: 16);
       return;
     }
+    if (hadManual) await _showHere();
     await _map?.flyTo(here, zoom: 16);
   }
 
@@ -247,8 +317,9 @@ class ExplorePageState extends State<ExplorePage> {
     final map = _map;
     if (map == null) return;
     if (!map.router.available) return _directionsElsewhere(p);
-    var from = state.myLocation ?? await state.locate();
-    var label = s.yourLocation;
+    final manual = state.manualHere;
+    var from = state.here ?? await state.locate();
+    var label = manual != null ? s.youSetHere(manual.name) : s.yourLocation;
     if (!mounted) return;
     if (from == null) {
       from = map.center ?? amman;
@@ -382,7 +453,7 @@ class ExplorePageState extends State<ExplorePage> {
           sheet = _PlaceSheet(
             selection: selected,
             s: s,
-            from: state.myLocation,
+            from: state.here,
             saved: state.isSaved(selected.place),
             onClose: _clear,
             onDirections: () => _directions(selected.place),
@@ -390,6 +461,8 @@ class ExplorePageState extends State<ExplorePage> {
             onShare: () => _share(selected.place),
             onCopy: () => _copyCoordinates(selected.place),
             onContribute: () => _contribute(selected),
+            onHere: () => _setHere(selected.place),
+            onCompass: () => _openCompass(selected.place),
           );
         } else if (_category != null) {
           sheet = _ResultsSheet(
@@ -398,7 +471,7 @@ class ExplorePageState extends State<ExplorePage> {
             results: _results,
             s: s,
             expanded: _listExpanded,
-            from: state.myLocation ?? _map?.center,
+            from: state.here ?? _map?.center,
             onTap: (p) => _select(p),
             onClose: _clearResults,
             onExpand: (v) => setState(() => _listExpanded = v),
@@ -419,12 +492,18 @@ class ExplorePageState extends State<ExplorePage> {
                 imagery: state.activeImagery,
                 initialCenter: amman,
                 initialZoom: 13,
-                showUserLocation: state.myLocation != null,
+                showUserLocation: state.myLocation != null && state.manualHere == null,
                 onMapReady: _onMapReady,
                 onPoiTap: _onPoiTap,
                 onLongPress: _dropPin,
-                onTap: (_) {
-                  if (_selected != null && _trip == null) _clear();
+                onTap: (p) {
+                  if (_picking) {
+                    // On the web the tap on "Set it by hand" also reaches the map below.
+                    if (DateTime.now().difference(_pickingSince).inMilliseconds < 700) return;
+                    _setHere(SavedPlace(name: '', address: '', position: p));
+                  } else if (_selected != null && _trip == null) {
+                    _clear();
+                  }
                 },
                 compassPosition: kIsWeb ? null : (rtl ? CompassViewPosition.topLeft : CompassViewPosition.topRight),
                 compassMargins: math.Point(18, top + 176),
@@ -443,7 +522,31 @@ class ExplorePageState extends State<ExplorePage> {
                     )
                   else ...[
                     Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 0), child: _searchBar()),
-                    SizedBox(height: 52, child: _chips()),
+                    if (_picking)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                        child: _Banner(
+                          icon: Icons.touch_app_outlined,
+                          text: s.pickHint,
+                          action: s.cancel,
+                          onAction: () => setState(() => _picking = false),
+                        ),
+                      )
+                    else ...[
+                      SizedBox(height: 52, child: _chips()),
+                      if (state.manualHere != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                          child: _Banner(
+                            icon: Icons.person_pin_circle,
+                            text: s.youSetHere(state.manualHere!.name),
+                            action: s.change,
+                            onAction: _startPicking,
+                            onClose: _clearHere,
+                            onTap: () => _map?.flyTo(state.manualHere!.position, zoom: 16),
+                          ),
+                        ),
+                    ],
                   ],
                   Align(
                     alignment: AlignmentDirectional.centerEnd,
@@ -638,13 +741,15 @@ class _PlaceSheet extends StatelessWidget {
     required this.onShare,
     required this.onCopy,
     required this.onContribute,
+    required this.onHere,
+    required this.onCompass,
   });
 
   final _Selection selection;
   final S s;
   final LatLng? from;
   final bool saved;
-  final VoidCallback onClose, onDirections, onSave, onShare, onCopy, onContribute;
+  final VoidCallback onClose, onDirections, onSave, onShare, onCopy, onContribute, onHere, onCompass;
 
   @override
   Widget build(BuildContext context) {
@@ -701,6 +806,18 @@ class _PlaceSheet extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   FilledButton.tonalIcon(
+                    onPressed: onCompass,
+                    icon: const Icon(Icons.explore_outlined, size: 20),
+                    label: Text(s.compass),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton.tonalIcon(
+                    onPressed: onHere,
+                    icon: const Icon(Icons.person_pin_circle_outlined, size: 20),
+                    label: Text(s.imHere),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton.tonalIcon(
                     onPressed: onShare,
                     icon: const Icon(Icons.share_outlined, size: 20),
                     label: Text(s.share),
@@ -718,6 +835,46 @@ class _PlaceSheet extends StatelessWidget {
               action: true,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A one-line notice under the search bar, with an action and an optional close.
+class _Banner extends StatelessWidget {
+  const _Banner({required this.icon, required this.text, required this.action, required this.onAction, this.onClose, this.onTap});
+  final IconData icon;
+  final String text;
+  final String action;
+  final VoidCallback onAction;
+  final VoidCallback? onClose;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFFFF7ED),
+      elevation: 2,
+      shadowColor: Colors.black26,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 4, 4),
+          child: Row(
+            children: [
+              Icon(icon, color: const Color(0xFFEA580C), size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.5)),
+              ),
+              TextButton(onPressed: onAction, child: Text(action)),
+              if (onClose != null)
+                IconButton(icon: const Icon(Icons.close, size: 18), visualDensity: VisualDensity.compact, onPressed: onClose),
+            ],
+          ),
         ),
       ),
     );
