@@ -31,6 +31,7 @@ class _CompassPageState extends State<CompassPage> {
   double? _accuracy;
   bool _hasCompass = !kIsWeb;
   LatLng? _gps;
+  bool _jumped = false;
 
   S get s => S(widget.state.language);
 
@@ -53,7 +54,7 @@ class _CompassPageState extends State<CompassPage> {
       );
     }
     // Live GPS only when the user has not overridden it by hand.
-    if (widget.state.manualHere == null) unawaited(_followGps());
+    if (widget.state.manualHere == null && !widget.state.gpsDistrusted) unawaited(_followGps());
   }
 
   Future<void> _followGps() async {
@@ -62,7 +63,19 @@ class _CompassPageState extends State<CompassPage> {
       if (perm != LocationPermission.always && perm != LocationPermission.whileInUse) return;
       _gpsSub = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 5),
-      ).listen((p) => setState(() => _gps = LatLng(p.latitude, p.longitude)), onError: (_) {});
+      ).listen((pos) {
+        final p = LatLng(pos.latitude, pos.longitude);
+        // Jammed or faked GPS can jump far away: keep the last believable position.
+        if (widget.state.checkFix(p, mocked: pos.isMocked) != null) {
+          setState(() => _jumped = true);
+          return;
+        }
+        widget.state.recordFix(p);
+        setState(() {
+          _gps = p;
+          _jumped = false;
+        });
+      }, onError: (_) {});
     } catch (_) {
       // No GPS: the hand-set position or the map centre is used.
     }
@@ -174,6 +187,10 @@ class _CompassPageState extends State<CompassPage> {
             if (calibrate) ...[
               const SizedBox(height: 12),
               _Note(icon: Icons.screen_rotation_alt, text: s.calibrate, color: const Color(0xFFB45309)),
+            ],
+            if (_jumped) ...[
+              const SizedBox(height: 12),
+              _Note(icon: Icons.gps_off, text: s.gpsJumped, color: const Color(0xFFB45309)),
             ],
             const SizedBox(height: 20),
             _Note(icon: manual != null ? Icons.person_pin_circle_outlined : Icons.my_location, text: fromText),

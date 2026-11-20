@@ -145,6 +145,28 @@ class S {
   String _deg(int d) => '\u2066$d°\u2069';
   String head(String dir, int deg) => _('باتجاه $dir (${_deg(deg)})', 'Head $dir ($deg°)');
 
+  // GPS jump warning
+  String get gpsDoubtTitle => _('قد يكون موقعك غير صحيح', 'Your location may be wrong');
+  String gpsDoubtMocked() => _(
+    'يقول الهاتف إن الموقع يأتي من تطبيق وليس من GPS.',
+    'The phone says this location comes from an app, not from GPS.',
+  );
+  String gpsDoubtHand(String d, String name) => _(
+    'يضعك GPS على بعد $d من $name، الموقع الذي حددته بنفسك.',
+    'GPS puts you $d from $name, the position you set by hand.',
+  );
+  String gpsDoubtJump(String d, String since) => _(
+    'يضعك GPS على بعد $d من مكانك قبل $since. لا تقطع سيارة هذه المسافة بهذه السرعة.',
+    'GPS puts you $d from where you were $since ago. No car covers that so fast.',
+  );
+  String get gpsDoubtWhy => _(
+    'قد يكون GPS مشوشًا أو مزيفًا في منطقتك. إن كنت تعرف مكانك، حدده بنفسك.',
+    'GPS may be jammed or faked where you are. If you know where you are, set it by hand.',
+  );
+  String get useAnyway => _('استخدمه رغم ذلك', 'Use it anyway');
+  String get ignore => _('تجاهل', 'Ignore');
+  String get gpsJumped => _('قفز GPS إلى مكان بعيد فتجاهلناه.', 'GPS jumped far away, so it is being ignored.');
+
   String cardinal(double deg) {
     final i = ((deg % 360) / 45).round() % 8;
     return ar

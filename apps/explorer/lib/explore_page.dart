@@ -288,10 +288,60 @@ class ExplorePageState extends State<ExplorePage> {
     await _select(result.place, bounds: result.bounds);
   }
 
+  /// Asks what to do with a GPS answer that does not fit (see [GpsDoubt]).
+  /// Returns the position when the user chooses to use it.
+  Future<LatLng?> _askAboutDoubt() async {
+    final d = state.doubt;
+    if (d == null) return null;
+    final since = d.since < const Duration(minutes: 1) ? const Duration(minutes: 1) : d.since;
+    final reason = d.mocked
+        ? s.gpsDoubtMocked()
+        : d.handName != null
+        ? s.gpsDoubtHand(s.km(d.km), d.handName!)
+        : s.gpsDoubtJump(s.km(d.km), s.duration(since));
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.gps_off, color: Color(0xFFB45309), size: 36),
+        title: Text(s.gpsDoubtTitle),
+        content: Text('$reason\n\n${s.gpsDoubtWhy}'),
+        actionsOverflowDirection: VerticalDirection.up,
+        actionsOverflowButtonSpacing: 4,
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, 'use'), child: Text(s.useAnyway)),
+          TextButton(onPressed: () => Navigator.pop(context, 'ignore'), child: Text(s.ignore)),
+          FilledButton(onPressed: () => Navigator.pop(context, 'hand'), child: Text(s.setByHand)),
+        ],
+      ),
+    );
+    if (!mounted) return null;
+    switch (choice) {
+      case 'use':
+        final p = state.acceptDoubt();
+        await _showHere();
+        return p;
+      case 'hand':
+        state.rejectDoubt();
+        await _startPicking();
+      default:
+        state.rejectDoubt();
+    }
+    return null;
+  }
+
   Future<void> _locate() async {
     final hadManual = state.manualHere != null;
-    final here = await state.locate();
+    var here = await state.locate();
     if (!mounted) return;
+    if (here == null && state.doubt != null) {
+      here = await _askAboutDoubt();
+      if (!mounted) return;
+      if (here == null) {
+        final manual = state.manualHere;
+        if (manual != null) await _map?.flyTo(manual.position, zoom: 16);
+        return;
+      }
+    }
     if (here == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -321,6 +371,10 @@ class ExplorePageState extends State<ExplorePage> {
     var from = state.here ?? await state.locate();
     var label = manual != null ? s.youSetHere(manual.name) : s.yourLocation;
     if (!mounted) return;
+    if (from == null && state.doubt != null) {
+      from = await _askAboutDoubt();
+      if (!mounted || _picking) return;
+    }
     if (from == null) {
       from = map.center ?? amman;
       label = s.mapCentre;
@@ -492,7 +546,7 @@ class ExplorePageState extends State<ExplorePage> {
                 imagery: state.activeImagery,
                 initialCenter: amman,
                 initialZoom: 13,
-                showUserLocation: state.myLocation != null && state.manualHere == null,
+                showUserLocation: state.myLocation != null && state.manualHere == null && !state.gpsDistrusted,
                 onMapReady: _onMapReady,
                 onPoiTap: _onPoiTap,
                 onLongPress: _dropPin,

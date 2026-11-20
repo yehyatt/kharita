@@ -14,6 +14,27 @@ final provider = MapelevenProvider.selfHosted(serverUrl);
 /// Amman, where the demo opens.
 const amman = LatLng(31.9539, 35.9106);
 
+/// A GPS answer that does not fit where the user was: jammed or faked GPS
+/// often puts a phone tens or hundreds of kilometres away in an instant.
+class GpsDoubt {
+  const GpsDoubt({required this.position, required this.km, required this.since, this.mocked = false, this.handName});
+
+  /// Where GPS says the user is.
+  final LatLng position;
+
+  /// How far that is from the last trusted position.
+  final double km;
+
+  /// Time since the last trusted position.
+  final Duration since;
+
+  /// The phone reports the location comes from an app (Android only).
+  final bool mocked;
+
+  /// Set when the comparison is with a position the user set by hand.
+  final String? handName;
+}
+
 /// A place the user saved or searched for, stored as JSON.
 class SavedPlace {
   const SavedPlace({required this.name, required this.address, required this.position, this.kind});
@@ -87,6 +108,16 @@ class AppState extends ChangeNotifier {
   SavedPlace? manualHere;
   DateTime? manualHereAt;
 
+  /// Last GPS position the app trusted, kept across restarts for [checkFix].
+  LatLng? _lastFix;
+  DateTime? _lastFixAt;
+
+  /// A GPS answer waiting for the user to accept or reject it.
+  GpsDoubt? doubt;
+
+  /// The user said GPS is wrong: hide the GPS dot until a fix is accepted.
+  bool gpsDistrusted = false;
+
   /// Where distances and directions start: the hand-set position, else GPS.
   LatLng? get here => manualHere?.position ?? myLocation;
   SharedPreferences? _prefs;
@@ -100,6 +131,12 @@ class AppState extends ChangeNotifier {
       satellite = imagery != null && (p.getBool('satellite') ?? false);
       saved.addAll(_decode(p.getString('saved')));
       recent.addAll(_decode(p.getString('recent')));
+      final fix = p.getString('lastFix');
+      if (fix != null) {
+        final j = jsonDecode(fix) as Map<String, dynamic>;
+        _lastFix = LatLng((j['lat'] as num).toDouble(), (j['lng'] as num).toDouble());
+        _lastFixAt = DateTime.tryParse(j['at'] as String? ?? '');
+      }
       final manual = p.getString('manualHere');
       if (manual != null) {
         final j = jsonDecode(manual) as Map<String, dynamic>;
@@ -154,7 +191,60 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Checks a GPS answer against the last trusted position. Returns why it
+  /// looks wrong, or null when it is believable.
+  GpsDoubt? checkFix(LatLng p, {bool mocked = false}) {
+    final now = DateTime.now();
+    final manual = manualHere;
+    if (manual != null) {
+      // The user set a position because GPS was off or wrong: ask before GPS overrides it.
+      final km = distanceKm(manual.position, p);
+      if (mocked || km > 5) {
+        return GpsDoubt(position: p, km: km, since: now.difference(manualHereAt ?? now), mocked: mocked, handName: manual.name);
+      }
+      return null;
+    }
+    final ref = _lastFix, at = _lastFixAt;
+    if (ref == null || at == null) return mocked ? GpsDoubt(position: p, km: 0, since: Duration.zero, mocked: true) : null;
+    final km = distanceKm(ref, p);
+    final since = now.difference(at);
+    final hours = math.max(since.inSeconds / 3600, 1 / 60);
+    // Faster than 250 km/h over more than 3 km is not a car trip.
+    if (mocked || (km > 3 && km / hours > 250)) return GpsDoubt(position: p, km: km, since: since, mocked: mocked);
+    return null;
+  }
+
+  /// Remembers a GPS position as trusted.
+  void recordFix(LatLng p) {
+    _lastFix = p;
+    _lastFixAt = DateTime.now();
+    _prefs?.setString('lastFix', jsonEncode({'lat': p.latitude, 'lng': p.longitude, 'at': _lastFixAt!.toIso8601String()}));
+  }
+
+  /// Uses the doubted GPS answer anyway.
+  LatLng? acceptDoubt() {
+    final d = doubt;
+    if (d == null) return null;
+    doubt = null;
+    gpsDistrusted = false;
+    myLocation = d.position;
+    recordFix(d.position);
+    if (manualHere != null) clearManualHere();
+    notifyListeners();
+    return d.position;
+  }
+
+  /// Ignores the doubted GPS answer and hides the GPS dot.
+  void rejectDoubt() {
+    doubt = null;
+    gpsDistrusted = true;
+    myLocation = null;
+    notifyListeners();
+  }
+
   /// Asks for permission if needed and returns the current position, or null.
+  /// A position that does not fit where the user was is not used: it is put
+  /// in [doubt] for the user to decide, and null is returned.
   Future<LatLng?> locate() async {
     try {
       if (!await Geolocator.isLocationServiceEnabled()) return null;
@@ -164,7 +254,17 @@ class AppState extends ChangeNotifier {
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 10)),
       );
-      myLocation = LatLng(pos.latitude, pos.longitude);
+      final p = LatLng(pos.latitude, pos.longitude);
+      final d = checkFix(p, mocked: pos.isMocked);
+      if (d != null) {
+        doubt = d;
+        notifyListeners();
+        return null;
+      }
+      doubt = null;
+      gpsDistrusted = false;
+      myLocation = p;
+      recordFix(p);
       if (manualHere != null) clearManualHere();
       notifyListeners();
       return myLocation;

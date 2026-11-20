@@ -21,7 +21,7 @@ Requests without a key keep working, with searches limited per IP.
 
 - Road routing for car, walking and bicycle with Valhalla: done early, see [routing](routing.md).
 - Printed paper maps (one sheet or an A4 booklet) for when the internet or GPS is down: done early, see [printing maps](print.md).
-- Explorer without GPS: set your position by tapping a landmark you can see, and a compass arrow to any place: done. Still to come: a warning when the location jumps in a way a real trip cannot.
+- Explorer without GPS: set your position by tapping a landmark you can see, a compass arrow to any place, and a warning when GPS jumps in a way a real trip cannot: done.
 - Offline regions: download a bounding box for use without a connection (MapLibre offline packs on Flutter, PMTiles file on web).
 - Isochrones and distance matrices from the same Valhalla server.
 - Native iOS (Swift) and Android (Kotlin) packages on the same server.
