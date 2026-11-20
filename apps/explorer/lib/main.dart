@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:mapeleven/mapeleven.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'app_state.dart';
 import 'delivery_page.dart';
@@ -125,7 +126,8 @@ class MapButton extends StatelessWidget {
 }
 
 /// Theme and language picker shown from the layers button.
-Future<void> showLayersSheet(BuildContext context, AppState state) {
+/// [center] and [zoom] place the print page's frame where the map is.
+Future<void> showLayersSheet(BuildContext context, AppState state, {LatLng? center, double? zoom}) {
   return showModalBottomSheet(
     context: context,
     showDragHandle: true,
@@ -176,6 +178,20 @@ Future<void> showLayersSheet(BuildContext context, AppState state) {
                   ],
                   selected: {state.language},
                   onSelectionChanged: (v) => state.setLanguage(v.first),
+                ),
+                const SizedBox(height: 12),
+                const Divider(),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.print_outlined),
+                  title: Text(s.printMap),
+                  subtitle: Text(s.printMapHint),
+                  trailing: const Icon(Icons.open_in_new, size: 18),
+                  onTap: () {
+                    final c = center ?? const LatLng(31.9539, 35.9106);
+                    final at = '${c.longitude.toStringAsFixed(4)},${c.latitude.toStringAsFixed(4)},${(zoom ?? 11).toStringAsFixed(1)}';
+                    launchUrl(Uri.parse('https://mapeleven.dev/print/#$at'), mode: LaunchMode.externalApplication);
+                  },
                 ),
               ],
             ),

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Print a map · Mapeleven</title>
+  <meta name="description" content="Make a paper road map as a PDF: one large sheet or an A4 booklet, with a grid, legend, scale bar and town index. Works when the internet and GPS do not." />
+  <link rel="canonical" href="https://mapeleven.dev/print/" />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/mapeleven.css" />
+  <link rel="stylesheet" href="/static/site.css" />
+  <link rel="stylesheet" href="/static/print.css" />
+  <script type="importmap">{ "imports": { "maplibre-gl": "/static/js/maplibre-gl.mjs" } }</script>
+  <script src="/static/js/jspdf.umd.min.js" defer></script>
+</head>
+<body class="print-page">
+  <header class="topbar">
+    <a class="logo" href="/"><img src="/static/favicon.svg" alt="" width="26" height="26" /> Mapeleven</a>
+    <nav>
+      <a href="/docs/getting-started.html">Docs</a>
+      <a href="/explorer/">Demo</a>
+      <a href="/print/" aria-current="page">Print</a>
+      <a href="/account/">Get a key</a>
+      <a href="https://github.com/yehyatt/mapeleven" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <main class="pm">
+    <aside class="pm-panel">
+      <h1>Print a paper map</h1>
+      <p class="fine">For when the internet or GPS is down. Print it now and keep it with a compass.</p>
+
+      <div class="pm-search">
+        <input id="q" type="search" placeholder="Find a town or place" autocomplete="off" dir="auto" />
+        <ul id="results" hidden></ul>
+      </div>
+
+      <label>Title <input id="title" type="text" value="Amman" maxlength="60" dir="auto" /></label>
+
+      <fieldset>
+        <legend>Layout</legend>
+        <label class="pm-radio"><input type="radio" name="mode" value="booklet" checked /> A4 booklet <span class="fine">pages for a home printer</span></label>
+        <label class="pm-radio"><input type="radio" name="mode" value="sheet" /> One sheet <span class="fine">A4 to A0, for a print shop</span></label>
+      </fieldset>
+
+      <div class="pm-row">
+        <label id="paper-wrap" hidden>Paper
+          <select id="paper">
+            <option>A4</option><option selected>A3</option><option>A2</option><option>A1</option><option>A0</option>
+          </select>
+        </label>
+        <label>Orientation
+          <select id="orient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select>
+        </label>
+      </div>
+
+      <div class="pm-row" id="pages-wrap">
+        <label>Pages across <input id="cols" type="number" min="1" max="8" value="2" /></label>
+        <label>Pages down <input id="rows" type="number" min="1" max="8" value="2" /></label>
+      </div>
+
+      <div class="pm-row">
+        <label>Scale
+          <select id="scale">
+            <option value="10000">1:10,000 (streets)</option>
+            <option value="25000">1:25,000 (city)</option>
+            <option value="50000" selected>1:50,000 (city and suburbs)</option>
+            <option value="100000">1:100,000</option>
+            <option value="250000">1:250,000 (region)</option>
+            <option value="500000">1:500,000</option>
+            <option value="1000000">1:1,000,000 (country)</option>
+            <option value="2000000">1:2,000,000</option>
+          </select>
+        </label>
+        <label>Map language
+          <select id="lang"><option value="ar">Arabic</option><option value="en">English and Arabic</option></select>
+        </label>
+      </div>
+
+      <label>Quality
+        <select id="dpi"><option value="150">Draft (150 dpi, small file)</option><option value="200" selected>Good (200 dpi)</option><option value="300">Best (300 dpi, large file)</option></select>
+      </label>
+
+      <p id="summary" class="pm-summary"></p>
+      <button id="make" class="btn primary" type="button">Make PDF</button>
+      <p id="status" class="fine" aria-live="polite"></p>
+
+      <details class="pm-tips">
+        <summary>Printing tips</summary>
+        <ul>
+          <li>Print at <b>actual size (100%)</b>, not "fit to page", so the scale is true.</li>
+          <li>The top of every page is north. Each grid square is the size shown under the map.</li>
+          <li>Numbers at the page edges tell you which page continues the map.</li>
+          <li>Keep a copy in the car and one at home. Paper never runs out of battery.</li>
+        </ul>
+      </details>
+    </aside>
+
+    <section class="pm-map">
+      <div id="map"></div>
+      <svg id="frames" aria-hidden="true"></svg>
+      <p class="pm-hint">Move the map to place the frame. Zoom out to see all of it.</p>
+    </section>
+  </main>
+
+  <script type="module" src="/static/print.js"></script>
+</body>
+</html>

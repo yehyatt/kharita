@@ -17,6 +17,8 @@ class S {
   String get language => _('اللغة', 'Language');
   String get satellite => _('قمر صناعي', 'Satellite');
   String get mapType => _('نوع الخريطة', 'Map type');
+  String get printMap => _('اطبع خريطة ورقية', 'Print a paper map');
+  String get printMapHint => _('لوقت انقطاع الإنترنت أو GPS', 'For when the internet or GPS is down');
 
   // Contribute (OpenStreetMap notes)
   String get addPlace => _('إضافة مكان ناقص', 'Add a missing place');

@@ -7,6 +7,7 @@
     "serve": "node build.mjs && python3 -m http.server 8090 --directory dist"
   },
   "devDependencies": {
+    "jspdf": "^4.2.1",
     "marked": "16.4.1"
   }
 }

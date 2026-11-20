@@ -28,6 +28,9 @@ for (const f of ["maplibre-gl.mjs", "maplibre-gl-shared.mjs", "maplibre-gl-worke
   cpSync(join(ml, f), join(dist, "static/js", f));
 }
 
+// jsPDF for the print page (/print/), served locally.
+cpSync(join(here, "node_modules/jspdf/dist/jspdf.umd.min.js"), join(dist, "static/js/jspdf.umd.min.js"));
+
 // Versioned SDK for pages without a bundler: /sdk/web/<version>/ and /sdk/web/latest/.
 const version = JSON.parse(readFileSync(join(root, "packages/mapeleven-web/package.json"), "utf8")).version;
 for (const dir of [version, "latest"]) {
@@ -89,7 +92,7 @@ for (const page of pages) {
 }
 writeFileSync(join(dist, "docs/index.html"), '<!doctype html><meta http-equiv="refresh" content="0; url=getting-started.html">');
 // For search engines: sitemap and robots.
-const urls = ["https://mapeleven.dev/", "https://mapeleven.dev/explorer/", ...pages.map((p) => `https://mapeleven.dev/docs/${p.slug}.html`)];
+const urls = ["https://mapeleven.dev/", "https://mapeleven.dev/explorer/", "https://mapeleven.dev/print/", ...pages.map((p) => `https://mapeleven.dev/docs/${p.slug}.html`)];
 writeFileSync(
   join(dist, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`,
