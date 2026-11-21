@@ -142,6 +142,10 @@ class MapelevenController {
   LatLng? get center => raw.cameraPosition?.target;
   double? get zoom => raw.cameraPosition?.zoom;
 
+  /// The area the map shows now, for example to save it with
+  /// [MapelevenOffline.download].
+  Future<LatLngBounds> visibleBounds() => raw.getVisibleRegion();
+
   /// Animates to [target]; keeps the zoom unless it is below 14.
   Future<void> flyTo(LatLng target, {double? zoom}) async {
     final z = zoom ?? max(raw.cameraPosition?.zoom ?? 14, 14);

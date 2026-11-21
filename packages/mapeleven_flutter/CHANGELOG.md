@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Offline maps: `MapelevenOffline.download(provider, MapelevenOfflineArea.jordan, maxZoom: 14)` saves an area on the phone in every theme and language you pass; `packs()`, `resume()`, `delete()`, `tileCount()`. `controller.visibleBounds()` gives the area on screen. Android and iOS.
 - Routing: `controller.router.route([from, to], mode: MapelevenTravelMode.car)` returns routes with duration, distance, line and Arabic or English steps; `controller.showRoute(route, alternatives: ...)` and `clearRoute()` draw them. Uses the server's Valhalla service (`MapelevenProvider.routingUrl`, set for `hosted` and `selfHosted`). Web SDK: `map.router.route()`, `map.showRoute()`, `map.clearRoute()`.
 - `MapelevenMap`: `compassPosition`, `compassMargins` and `attributionMargins`, for apps that draw a bottom sheet over the map (the attribution button rides above it). Native only; MapLibre GL JS ignores the margins.
 

@@ -20,6 +20,38 @@ class S {
   String get printMap => _('اطبع خريطة ورقية', 'Print a paper map');
   String get printMapHint => _('لوقت انقطاع الإنترنت أو GPS', 'For when the internet or GPS is down');
 
+  // Offline maps
+  String get offlineMaps => _('خرائط بلا إنترنت', 'Offline maps');
+  String get offlineMapsHint => _('احفظ الخريطة على الهاتف', 'Save the map on this phone');
+  String get offlineIntro => _(
+    'احفظ الخريطة على هاتفك لتعمل دون إنترنت، بالنمطين الفاتح والداكن وباللغتين. البحث والاتجاهات ما زالا يحتاجان إلى الإنترنت، أما موقعك بيدك والبوصلة فيعملان دونه.',
+    'Save the map on your phone so it works with no internet, in light and dark and in both languages. Search and directions still need the internet; setting your position by hand and the compass work without it.',
+  );
+  String get jordan => _('الأردن كاملاً', 'All of Jordan');
+  String get jordanHint => _('كل الشوارع، نحو 100 ميغابايت', 'Every street, about 100 MB');
+  String get thisArea => _('المنطقة الظاهرة بتفصيل كامل', 'The area on screen, in full detail');
+  String get thisAreaHint =>
+      _('يضيف المباني ومزيداً من المحلات والأماكن', 'Adds buildings and more shops and places');
+  String get zoomInFirst => _('المنطقة كبيرة: كبّر الخريطة على مدينة أولاً', 'Too big: zoom the map in on a city first');
+  String get download => _('تنزيل', 'Download');
+  String get downloading => _('جارٍ التنزيل…', 'Downloading…');
+  String get keepOpen => _('أبقِ التطبيق مفتوحاً حتى ينتهي التنزيل.', 'Keep the app open until the download finishes.');
+  String get savedMaps => _('الخرائط المحفوظة', 'Saved maps');
+  String get noSavedMaps => _('لا خرائط محفوظة بعد.', 'No saved maps yet.');
+  String get unfinished => _('لم يكتمل', 'Unfinished');
+  String get resume => _('أكمل', 'Resume');
+  String get delete => _('احذف', 'Delete');
+  String get offlineDone => _('حُفظت الخريطة. ستعمل دون إنترنت.', 'Map saved. It works with no internet now.');
+  String get offlineFailed => _('توقف التنزيل. تحقق من الاتصال ثم أكمل.', 'The download stopped. Check the connection, then resume.');
+  String get offlineWebOnly =>
+      _('حفظ الخرائط متاح في تطبيق الهاتف فقط.', 'Saving maps works in the phone app only.');
+  String areaAround(String lat, String lng) => _('منطقة حول $lat، $lng', 'Area around $lat, $lng');
+  String mb(int bytes) {
+    final v = bytes / 1e6;
+    final t = v < 10 ? v.toStringAsFixed(1) : v.round().toString();
+    return _('$t ميغابايت', '$t MB');
+  }
+
   // Contribute (OpenStreetMap notes)
   String get addPlace => _('إضافة مكان ناقص', 'Add a missing place');
   String get addPlaceShort => _('إضافة مكان', 'Add place');

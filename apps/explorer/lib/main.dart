@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'app_state.dart';
 import 'delivery_page.dart';
 import 'explore_page.dart';
+import 'offline_page.dart';
 import 'saved_page.dart';
 import 'strings.dart';
 
@@ -127,7 +128,7 @@ class MapButton extends StatelessWidget {
 
 /// Theme and language picker shown from the layers button.
 /// [center] and [zoom] place the print page's frame where the map is.
-Future<void> showLayersSheet(BuildContext context, AppState state, {LatLng? center, double? zoom}) {
+Future<void> showLayersSheet(BuildContext context, AppState state, {LatLng? center, double? zoom, MapelevenController? map}) {
   return showModalBottomSheet(
     context: context,
     showDragHandle: true,
@@ -181,6 +182,22 @@ Future<void> showLayersSheet(BuildContext context, AppState state, {LatLng? cent
                 ),
                 const SizedBox(height: 12),
                 const Divider(),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.download_for_offline_outlined),
+                  title: Text(s.offlineMaps),
+                  subtitle: Text(s.offlineMapsHint),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final nav = Navigator.of(context);
+                    LatLngBounds? view;
+                    try {
+                      view = await map?.visibleBounds();
+                    } catch (_) {}
+                    nav.pop();
+                    nav.push(MaterialPageRoute<void>(builder: (_) => OfflinePage(state: state, view: view, map: map)));
+                  },
+                ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.print_outlined),

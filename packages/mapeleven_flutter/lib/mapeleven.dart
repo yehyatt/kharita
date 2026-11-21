@@ -8,6 +8,7 @@ export 'src/icons.dart';
 export 'src/imagery.dart' show MapelevenImagery, hybridStyle;
 export 'src/mapeleven_controller.dart';
 export 'src/mapeleven_map.dart';
+export 'src/offline.dart';
 export 'src/localize.dart';
 export 'src/provider.dart';
 export 'src/routing.dart';

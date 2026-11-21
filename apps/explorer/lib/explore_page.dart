@@ -609,7 +609,7 @@ class ExplorePageState extends State<ExplorePage> {
                       child: MapButton(
                         icon: Icons.layers_outlined,
                         tooltip: s.layers,
-                        onPressed: () => showLayersSheet(context, state, center: _map?.center, zoom: _map?.zoom),
+                        onPressed: () => showLayersSheet(context, state, center: _map?.center, zoom: _map?.zoom, map: _map),
                       ),
                     ),
                   ),
